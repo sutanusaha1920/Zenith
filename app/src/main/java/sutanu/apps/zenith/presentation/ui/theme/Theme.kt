@@ -13,6 +13,7 @@ import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalInspectionMode
 
 private val DarkColorScheme = darkColorScheme(
     primary = TextPrimary,
@@ -58,8 +59,8 @@ private val DarkZenithColors = ZenithColors(
 private val LightZenithColors = DarkZenithColors // TODO: Define light colors
 
 private val LocalColors = staticCompositionLocalOf { DarkZenithColors }
-private val LocalTypography = staticCompositionLocalOf { ZenithTypography() }
-private val LocalSpacing = staticCompositionLocalOf { ZenithSpacing() }
+private val LocalTypography = staticCompositionLocalOf { DefaultZenithTypography }
+private val LocalSpacing = staticCompositionLocalOf { DefaultZenithSpacing }
 
 object ZenithTheme {
     val colors: ZenithColors
@@ -86,7 +87,7 @@ fun ZenithTheme(
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !LocalInspectionMode.current -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
@@ -99,8 +100,8 @@ fun ZenithTheme(
 
     CompositionLocalProvider(
         LocalColors provides zenithColors,
-        LocalTypography provides ZenithTypography(),
-        LocalSpacing provides ZenithSpacing()
+        LocalTypography provides DefaultZenithTypography,
+        LocalSpacing provides DefaultZenithSpacing
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

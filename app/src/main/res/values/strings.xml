@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Zenith</string>
+    <string name="device_admin_description">Zenith requires Device Administrator permissions to protect your device from unauthorized changes and to enforce security policies.</string>
 </resources>
