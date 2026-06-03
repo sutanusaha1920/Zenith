@@ -11,6 +11,7 @@ composeBom = "2024.09.00"
 googleFonts = "1.7.5"
 datastoreCore = "1.2.1"
 playServicesLocation = "21.3.0"
+ksp = "2.2.10-2.0.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -35,4 +36,5 @@ play-services-location = { group = "com.google.android.gms", name = "play-servic
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 

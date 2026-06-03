@@ -9,6 +9,8 @@ import android.util.Log
 import androidx.annotation.RequiresPermission
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import kotlinx.coroutines.launch
+import sutanu.apps.zenith.data.local.db.ZenithDatabase
 
 class EmergencySosService : Service() {
 
@@ -49,16 +51,29 @@ class EmergencySosService : Service() {
 
     private fun dispatchSmsToTrustedContacts(message: String) {
 
-        val placeholderContactNumber = "TODO"
+        val db = ZenithDatabase.getDatabase(this)
 
-        try {
-            val smsManager: SmsManager = this.getSystemService(SmsManager::class.java)
-            smsManager.sendTextMessage(placeholderContactNumber, null, message, null, null)
-            Log.d("ZenithSOS", "Emergency message broadcasted successfully.")
-        } catch (e: Exception) {
-            Log.e("ZenithSOS", "Failed offline cellular transport transmission", e)
-        } finally {
-            stopSelf()
+        kotlinx.coroutines.MainScope().launch(kotlinx.coroutines.Dispatchers.IO) {
+            val phoneNumbers = db.sosContactsDao().getAllContactNumbers()
+
+            if (phoneNumbers.isEmpty()) {
+                Log.e("ZenithSOS", "No trusted contacts found in the database.")
+                return@launch
+            }
+
+            try {
+                val smsManager: SmsManager =
+                    this@EmergencySosService.getSystemService(SmsManager::class.java)
+                for (number in phoneNumbers) {
+                    smsManager.sendTextMessage(number, null, message, null, null)
+                    Log.d("ZenithSOS", "Emergency message sent to $number")
+                }
+                Log.d("ZenithSOS", "Emergency message broadcasted successfully.")
+            } catch (e: Exception) {
+                Log.e("ZenithSOS", "Failed offline cellular transport transmission", e)
+            } finally {
+                stopSelf()
+            }
         }
     }
 
