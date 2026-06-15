@@ -17,67 +17,25 @@ import androidx.compose.ui.platform.LocalInspectionMode
 
 private val DarkColorScheme = darkColorScheme(
     primary = TextPrimary,
-    secondary = SlateSurface,
+    secondary = TextSecondary,
     tertiary = MintSafe,
-    background = ObsidianBackground,
-    surface = SlateSurface,
-    onPrimary = ObsidianBackground,
+    background = BackgroundPrimary,
+    surface = SurfacePrimary,
+    onPrimary = BackgroundPrimary,
     onSecondary = TextPrimary,
-    onTertiary = ObsidianBackground,
+    onTertiary = BackgroundPrimary,
     onBackground = TextPrimary,
     onSurface = TextPrimary,
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = TextPrimary,
-    secondary = SlateSurface,
+    secondary = SurfacePrimary,
     tertiary = MintSafe
 )
 
-data class ZenithColors(
-    val background: Color,
-    val surface: Color,
-    val border: Color,
-    val interactive: Color,
-    val alert: Color,
-    val safe: Color,
-    val textPrimary: Color,
-    val textSecondary: Color
-)
 
-private val DarkZenithColors = ZenithColors(
-    background = ObsidianBackground,
-    surface = SlateSurface,
-    border = CardStroke,
-    interactive = ControlDark,
-    alert = CrimsonAlert,
-    safe = MintSafe,
-    textPrimary = TextPrimary,
-    textSecondary = TextSecondary
-)
 
-private val LightZenithColors = DarkZenithColors // TODO: Define light colors
-
-private val LocalColors = staticCompositionLocalOf { DarkZenithColors }
-private val LocalTypography = staticCompositionLocalOf { DefaultZenithTypography }
-private val LocalSpacing = staticCompositionLocalOf { DefaultZenithSpacing }
-
-object ZenithTheme {
-    val colors: ZenithColors
-        @Composable
-        @ReadOnlyComposable
-        get() = LocalColors.current
-
-    val typography: ZenithTypography
-        @Composable
-        @ReadOnlyComposable
-        get() = LocalTypography.current
-
-    val spacing: ZenithSpacing
-        @Composable
-        @ReadOnlyComposable
-        get() = LocalSpacing.current
-}
 
 @Composable
 fun ZenithTheme(
@@ -96,17 +54,9 @@ fun ZenithTheme(
         else -> LightColorScheme
     }
 
-    val zenithColors = if (darkTheme) DarkZenithColors else LightZenithColors
-
-    CompositionLocalProvider(
-        LocalColors provides zenithColors,
-        LocalTypography provides DefaultZenithTypography,
-        LocalSpacing provides DefaultZenithSpacing
-    ) {
-        MaterialTheme(
-            colorScheme = colorScheme,
-            typography = MaterialTypography,
-            content = content
-        )
-    }
+    MaterialTheme(
+        colorScheme = colorScheme,
+        typography = ZenithTypography,
+        content = content
+    )
 }

@@ -1,5 +1,6 @@
 package sutanu.apps.zenith.presentation.ui.theme
 
+import android.R.attr.fontFamily
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.TextStyle
@@ -22,26 +23,40 @@ val Poppins = FontFamily(
  * Zenith Custom Typography
  * Used for specific app styles not covered by standard Material 3 slots.
  */
-@Immutable
-data class ZenithTypography(
-    val headlineLarge: TextStyle = TextStyle(
-        fontFamily = Poppins,
-        fontWeight = FontWeight.Bold,
-        fontSize = 24.sp,
-        lineHeight = 32.sp
-    ),
-    val bodyMedium: TextStyle = TextStyle(
-        fontFamily = Poppins,
-        fontWeight = FontWeight.Normal,
-        fontSize = 15.sp,
-        lineHeight = 22.sp
-    ),
-    val labelButton: TextStyle = TextStyle(
-        fontFamily = Poppins,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 14.sp,
-        lineHeight = 20.sp
-    )
+
+val H1ScreenTitle: TextStyle = TextStyle(
+    fontFamily = Poppins,
+    fontWeight = FontWeight.Bold,
+    fontSize = 24.sp,
+    lineHeight = 32.sp
+)
+
+val H2ScreenSubtitle: TextStyle = TextStyle(
+    fontFamily = Poppins,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 20.sp,
+    lineHeight = 28.sp
+)
+
+val BodyPrimary: TextStyle = TextStyle(
+    fontFamily = Poppins,
+    fontWeight = FontWeight.Normal,
+    fontSize = 15.sp,
+    lineHeight = 22.sp
+)
+
+val LabelText: TextStyle = TextStyle(
+    fontFamily = Poppins,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 14.sp,
+    lineHeight = 20.sp
+)
+
+val ButtonText: TextStyle = TextStyle(
+    fontFamily = Poppins,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 16.sp,
+    lineHeight = 24.sp
 )
 
 /**
@@ -57,30 +72,21 @@ data class ZenithSpacing(
 )
 
 // Default instances for internal mapping and CompositionLocal defaults
-val DefaultZenithTypography = ZenithTypography()
-val DefaultZenithSpacing = ZenithSpacing()
+//val DefaultZenithTypography = ZenithTypography()
+//val DefaultZenithSpacing = ZenithSpacing()
 
 /**
  * Material 3 Typography Configuration
  * Maps custom Zenith styles to Material 3 typography slots.
  */
-val MaterialTypography = Typography(
-    headlineLarge = DefaultZenithTypography.headlineLarge,
-    bodyLarge = TextStyle(
-        fontFamily = Poppins,
-        fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
-    ),
-    bodyMedium = DefaultZenithTypography.bodyMedium,
-    labelLarge = DefaultZenithTypography.labelButton, // Map button style to labelLarge
-    
-    /* Optional: Map more styles for consistency */
-    titleLarge = TextStyle(
-        fontFamily = Poppins,
-        fontWeight = FontWeight.SemiBold,
-        fontSize = 22.sp,
-        lineHeight = 28.sp
-    )
+val ZenithTypography = Typography(
+    headlineLarge = H1ScreenTitle,
+    titleLarge = H2ScreenSubtitle,
+    bodyMedium = BodyPrimary,
+    labelLarge = LabelText, // Map button style to labelLarge
+    labelSmall = ButtonText // Map button style to labelSmall
+
+
 )
+
+val Typography = ZenithTypography

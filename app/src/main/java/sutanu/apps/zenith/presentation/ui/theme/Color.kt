@@ -5,21 +5,27 @@ import androidx.compose.ui.graphics.Color
 
 // Core Theme Palettes
 
-val ObsidianBackground = Color(0xFF12141C)
+val BackgroundPrimary = Color(0xFF0B101B)
 
-val SlateSurface = Color(0xFF1E2230)
+val SurfacePrimary = Color(0xFF1B2230)
 
-val CardStroke = Color(0xFF2E344A)
+val InputBg = Color(0xFF131A29)
+
+val OuterCardStrokePrimary = Color(0xFF2D3548)
 
 val ControlDark = Color(0xFF272C3E)
 
 
 // High-Emphasized System Colors
 
-val CrimsonAlert = Color(0xFFFF5A5A)
+val AlertPrimary = Color(0xFFEF4444)
+
+val WarningPrimary = Color(0xFFF59E0B)
+
+val InfoPrimary = Color(0xFF3B82F6)
 
 val MintSafe = Color(0xFF4EE4A3)
 
 val TextPrimary = Color(0xFFFFFFFF)
 
-val TextSecondary = Color(0xFF8F94A8)
+val TextSecondary = Color(0xFF8E9BB1)
