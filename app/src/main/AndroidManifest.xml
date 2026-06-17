@@ -36,7 +36,7 @@
 
         <receiver
             android:name=".data.services.ZenithAdminReceiver"
-            android:label="Zenith Administrative Shield"
+            android:label="@string/device_admin_label"
             android:description="@string/device_admin_description"
             android:permission="android.permission.BIND_DEVICE_ADMIN"
             android:exported="true">
@@ -60,6 +60,17 @@
         <service
             android:name=".data.services.EmergencySosService"
             android:exported="false" />
+
+        <service android:name=".data.services.AccessibilityMonitor"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config"/>
+        </service>
     </application>
 
 </manifest>
