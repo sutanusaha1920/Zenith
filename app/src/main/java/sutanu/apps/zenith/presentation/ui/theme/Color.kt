@@ -9,7 +9,9 @@ val BackgroundPrimary = Color(0xFF0B101B)
 
 val SurfacePrimary = Color(0xFF1B2230)
 
-val InputBg = Color(0xFF131A29)
+val SurfaceSecondary = Color(0xFF1A2A47)
+
+val InputBg = Color(0xFF1E2A40)
 
 val OuterCardStrokePrimary = Color(0xFF2D3548)
 

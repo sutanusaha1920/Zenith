@@ -8,10 +8,13 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import java.io.IOException
+import javax.inject.Inject
+import javax.inject.Singleton
 
 // Note: Ensure androidx.datastore:datastore-preferences is in your dependencies.
 // The Preferences type must be from androidx.datastore.preferences.core, not java.util.prefs.
@@ -22,7 +25,10 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  *
  * Improvement: Injecting [DataStore] directly instead of [Context] for better testability.
  */
-class AuthPreferences(private val context: Context) {
+@Singleton
+class AuthPreferences @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
 
     companion object {
         private val KEY_PIN_HASH = stringPreferencesKey("parental_pin_hash")

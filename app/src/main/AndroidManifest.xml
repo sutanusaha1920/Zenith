@@ -34,6 +34,14 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".presentation.lock.overlay.LockScreenOverlayActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen"
+            android:launchMode="singleInstance"
+            android:excludeFromRecents="true"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true"
+            android:exported="false" />
+
         <receiver
             android:name=".data.services.ZenithAdminReceiver"
             android:label="@string/device_admin_label"
