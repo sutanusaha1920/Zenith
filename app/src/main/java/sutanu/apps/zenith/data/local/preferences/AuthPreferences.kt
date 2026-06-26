@@ -16,8 +16,7 @@ import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
-// Note: Ensure androidx.datastore:datastore-preferences is in your dependencies.
-// The Preferences type must be from androidx.datastore.preferences.core, not java.util.prefs.
+
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "zenith_auth_prefs")
 
 /**
