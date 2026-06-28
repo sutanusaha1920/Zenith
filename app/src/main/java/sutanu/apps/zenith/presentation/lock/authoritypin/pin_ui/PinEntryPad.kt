@@ -33,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import sutanu.apps.zenith.R
 import sutanu.apps.zenith.data.local.preferences.AuthPreferences
+import sutanu.apps.zenith.data.repository_impl.AuthRepositoryImpl
+import sutanu.apps.zenith.domain.usecase.security.ValidatePinUseCase
 import sutanu.apps.zenith.presentation.lock.authoritypin.PinViewModel
 import sutanu.apps.zenith.presentation.ui.theme.AlertPrimary
 import sutanu.apps.zenith.presentation.ui.theme.BackgroundPrimary
@@ -89,7 +91,7 @@ fun PinEntryPad(viewModel: PinViewModel) {
             )
 
             Text(
-                text = "Enter your PIN to continue",
+                text = state.headerSubtitleText,
                 color = TextSecondary,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
@@ -146,7 +148,7 @@ fun PinEntryPad(viewModel: PinViewModel) {
                             modifier = Modifier.weight(1f),
                             onClick = {
                                 when (key) {
-                                    "⌫ delete" -> viewModel.onDeleteClick()
+                                    "delete" -> viewModel.onDeleteClick()
                                     "visibility" -> viewModel.togglePinVisibility()
                                     else -> viewModel.onKeyClick(key)
                                 }
@@ -212,7 +214,8 @@ private fun PinEntryPadPreview() {
     ZenithTheme(darkTheme = true) {
         Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary)) {
             PinEntryPad(PinViewModel(
-                authPreferences = AuthPreferences(LocalContext.current)
+                AuthRepositoryImpl(AuthPreferences(LocalContext.current)),
+                ValidatePinUseCase(AuthRepositoryImpl(AuthPreferences(LocalContext.current)))
             ))
         }
     }

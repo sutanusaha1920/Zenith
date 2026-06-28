@@ -9,16 +9,42 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import sutanu.apps.zenith.data.local.preferences.AuthPreferences
+import sutanu.apps.zenith.domain.model.PinSetupStep
 import sutanu.apps.zenith.domain.model.PinUiState
+import sutanu.apps.zenith.domain.repository.AuthRepository
+import sutanu.apps.zenith.domain.usecase.security.ValidatePinUseCase
 import javax.inject.Inject
 
 @HiltViewModel
 class PinViewModel @Inject constructor(
-    private val authPreferences: AuthPreferences
+    private val repository: AuthRepository,
+    private val validatePinUseCase: ValidatePinUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PinUiState())
     val uiState: StateFlow<PinUiState> = _uiState.asStateFlow()
+
+    init {
+        determineRoutingFlow()
+
+    }
+
+    private fun determineRoutingFlow() {
+        viewModelScope.launch {
+            val savedPin = repository.parentalPin.first()
+            if (savedPin.isEmpty()) {
+                _uiState.value = _uiState.value.copy(
+                    currentStep = PinSetupStep.CREATE,
+                    headerSubtitleText = "Create a 6-digit PIN"
+                )
+            } else {
+                _uiState.value = _uiState.value.copy(
+                    currentStep = PinSetupStep.VALIDATE,
+                    headerSubtitleText = "Enter your PIn to continue"
+                )
+            }
+        }
+    }
 
     fun onKeyClick(digit: String) {
         val currentPin = _uiState.value.enteredPin
@@ -49,20 +75,49 @@ class PinViewModel @Inject constructor(
     }
 
     private fun verifyPin(pin: String) {
-        viewModelScope.launch {
-            val savedPinHash = authPreferences.parentalPin.first()
-
-            // Setup fallback default PIN if none is created yet
-            val targetPin = savedPinHash.ifEmpty { "123456" }
-
-            if (savedPinHash == pin) {
-                _uiState.value = _uiState.value.copy(isSuccess = true)
-            } else {
+        when (_uiState.value.currentStep) {
+            PinSetupStep.CREATE -> {
                 _uiState.value = _uiState.value.copy(
                     enteredPin = "",
-                    isError = true,
-                    errorMessage = "Incorrect PIN"
+                    firstTimePinDraft = pin,
+                    currentStep = PinSetupStep.CONFIRM,
+                    headerSubtitleText = "Confirm your PIN"
                 )
+            }
+
+            PinSetupStep.CONFIRM -> {
+                val draftedPin = _uiState.value.firstTimePinDraft
+                if (pin == draftedPin) {
+                    viewModelScope.launch {
+                        repository.savePin(pin) // saves PIN
+                        _uiState.value = _uiState.value.copy(isSuccess = true)
+                    }
+                } else {
+                    // Restarts matrix state to step one
+                    _uiState.value = _uiState.value.copy(
+                        enteredPin = "",
+                        firstTimePinDraft = "",
+                        currentStep = PinSetupStep.CREATE,
+                        headerSubtitleText = "Create a 6-digit PIN",
+                        isError = true,
+                        errorMessage = "PINs did not match. Restart setup"
+                    )
+                }
+            }
+
+            PinSetupStep.VALIDATE -> {
+                viewModelScope.launch {
+                    val isValid = validatePinUseCase(pin)
+                    if (isValid) {
+                        _uiState.value = _uiState.value.copy(isSuccess = true)
+                    } else {
+                        _uiState.value = _uiState.value.copy(
+                            enteredPin = "",
+                            isError = true,
+                            errorMessage = "Incorrect PIN code. Try again"
+                        )
+                    }
+                }
             }
         }
     }
