@@ -5,8 +5,10 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import sutanu.apps.zenith.data.repository_impl.AuthRepositoryImpl
+import sutanu.apps.zenith.data.repository_impl.BedtimeRepositoryImpl
 import sutanu.apps.zenith.data.repository_impl.SosRepositoryImpl
 import sutanu.apps.zenith.domain.repository.AuthRepository
+import sutanu.apps.zenith.domain.repository.BedtimeRepository
 import sutanu.apps.zenith.domain.repository.SosRepository
 import javax.inject.Singleton
 
@@ -26,4 +28,9 @@ abstract class RepositoryModule {
         authRepositoryImpl: AuthRepositoryImpl
     ): AuthRepository
 
+    @Binds
+    @Singleton
+    abstract fun bindBedtimeRepository(
+        bedtimeRepositoryImpl: BedtimeRepositoryImpl
+    ): BedtimeRepository
 }
