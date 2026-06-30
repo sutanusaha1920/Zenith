@@ -9,26 +9,19 @@ import sutanu.apps.zenith.domain.repository.BedtimeRepository
 import javax.inject.Inject
 
 class BedtimeRepositoryImpl @Inject constructor(
-    private val appLimitDao: AppLimitDao,
-    private val authPreferences: AuthPreferences
-) : BedtimeRepository{
+    private val authPreferences: AuthPreferences,
+) : BedtimeRepository {
 
-    override fun getBedtimeExceptionsFlow(): Flow<List<AppLimitEntity>> {
-        return flow {
-            emit(emptyList())
-        }
+    override val isBedtimeEnabled: Flow<Boolean> = authPreferences.isBedtimeEnabled
+    override val bedtimeStartTime: Flow<String> = authPreferences.bedtimeStartTime
+    override val bedtimeEndTime: Flow<String> = authPreferences.bedtimeEndTime
+
+    override suspend fun setBedtimeEnabled(enabled: Boolean) {
+        authPreferences.setBedtimeEnabled(enabled)
     }
 
-    override suspend fun setScheduleEnabled(enabled: Boolean) {
-        authPreferences.setDeviceAdminEnabled(enabled)
-    }
-
-    override suspend fun updateScheduleTime(startTime: String, endTime: String) {
-
-    }
-
-    override suspend fun removeException(packageName: String) {
-
+    override suspend fun updateScheduleWindow(start: String, end: String) {
+        authPreferences.saveBedTimeWindow(start, end)
     }
 
 }

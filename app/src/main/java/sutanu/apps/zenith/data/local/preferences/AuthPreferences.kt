@@ -33,6 +33,9 @@ class AuthPreferences @Inject constructor(
         private val KEY_PIN_HASH = stringPreferencesKey("parental_pin_hash")
         private val KEY_IS_DEVICE_ADMIN_ENABLED = booleanPreferencesKey("is_device_admin_enabled")
         private val KEY_TOTAL_SCREEN_TIME_LIMIT = stringPreferencesKey("total_screen_time_limit")
+        private val KEY_IS_BEDTIME_ENABLED = booleanPreferencesKey("is_bedtime_enabled")
+        private val KEY_BEDTIME_START = stringPreferencesKey("bedtime_start_time")
+        private val KEY_BEDTIME_END = stringPreferencesKey("bedtime_end_time")
     }
 
     // Stream to observe PIN updates reactively
@@ -55,6 +58,31 @@ class AuthPreferences @Inject constructor(
     suspend fun setDeviceAdminEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[KEY_IS_DEVICE_ADMIN_ENABLED] = enabled
+        }
+    }
+
+    val isBedtimeEnabled: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[KEY_IS_BEDTIME_ENABLED] ?: false
+    }
+
+    suspend fun setBedtimeEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_IS_BEDTIME_ENABLED] = enabled
+        }
+    }
+
+    val bedtimeStartTime: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[KEY_BEDTIME_START] ?: "22:00"
+    }
+
+    val bedtimeEndTime: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[KEY_BEDTIME_END] ?: "07:00"
+    }
+
+    suspend fun saveBedTimeWindow(start: String, end: String) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_BEDTIME_START] = start
+            preferences[KEY_BEDTIME_END] = end
         }
     }
 

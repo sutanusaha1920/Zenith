@@ -8,8 +8,8 @@ class UpdateBedtimeScheduleUseCase @Inject constructor(
 ) {
 
     suspend fun toggleSchedule(enabled: Boolean) =
-        repository.setScheduleEnabled(enabled)
+        repository.setBedtimeEnabled(enabled)
 
     suspend fun changeInterval(startTime: String, endTime: String) =
-        repository.updateScheduleTime(startTime, endTime)
+        repository.updateScheduleWindow(startTime, endTime)
 }
