@@ -1,6 +1,5 @@
 package sutanu.apps.zenith.presentation.ui.theme
 
-import android.R.attr.fontFamily
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.TextStyle
