@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -29,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -51,6 +53,9 @@ import sutanu.apps.zenith.presentation.ui.theme.SurfacePrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextPrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
 import sutanu.apps.zenith.presentation.ui.theme.WarningPrimary
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -71,6 +76,9 @@ fun BedtimeContent(
     state: BedtimeUiState,
     onToggleBedtimeMode: (Boolean) -> Unit
 ) {
+    val startAngle = calculateTimeAngle(state.startTime)
+    val sweepAngle = calculateSweepAngle(state.startTime, state.endTime)
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -84,7 +92,8 @@ fun BedtimeContent(
         item {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
+                    .padding(top = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -99,7 +108,7 @@ fun BedtimeContent(
 
                     Text(
                         text = "Block device during sleep hours",
-                        color = TextPrimary,
+                        color = TextSecondary,
                         fontSize = 16.sp,
                         fontFamily = Poppins,
                         modifier = Modifier.padding(top = 4.dp)
@@ -119,7 +128,7 @@ fun BedtimeContent(
             }
         }
 
-        //
+        // Bedtime progress arc
         item {
             Column(
                 modifier = Modifier
@@ -138,27 +147,33 @@ fun BedtimeContent(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         val strokeWidth = 16.dp.toPx()
+                        val arcRadius = (size.width - strokeWidth) / 2
+                        val arcSize = Size(size.width - strokeWidth, size.height - strokeWidth)
+                        val topLeft = Offset(strokeWidth / 2, strokeWidth / 2)
 
                         drawArc(
-                            color = Color(0xFF1E293B),
+                            color = Color(0xFF1c2536),
                             startAngle = 0f,
                             sweepAngle = 360f,
                             useCenter = false,
+                            topLeft = topLeft,
+                            size = arcSize,
                             style = Stroke(width = strokeWidth)
                         )
 
                         drawArc(
-                            color = Color(0xFF2563EB),
-                            startAngle = -140f,
-                            sweepAngle = 290f,
+                            color = Color(0xFF2a4e7a),
+                            startAngle = startAngle,
+                            sweepAngle = sweepAngle,
                             useCenter = false,
-                            style = Stroke(width = strokeWidth, cap = StrokeCap.Square)
+                            topLeft = topLeft,
+                            size = arcSize,
+                            style = Stroke(width = strokeWidth, cap = StrokeCap.Round)
                         )
 
-                        val angleRad = Math.toRadians(-140.0)
-                        val radius = (size.width - strokeWidth) / 2
-                        val handleX = (size.width / 2) + radius * cos(angleRad)
-                        val handleY = (size.height / 2) + radius * sin(angleRad)
+                        val angleRad = Math.toRadians(startAngle.toDouble())
+                        val handleX = (size.width / 2) + arcRadius * cos(angleRad)
+                        val handleY = (size.height / 2) + arcRadius * sin(angleRad)
                         drawCircle(
                             color = WarningPrimary,
                             radius = 8.dp.toPx(),
@@ -200,7 +215,7 @@ fun BedtimeContent(
                             Image(
                                 painter = painterResource(id = R.drawable.ic_bedtime_moon_off),
                                 contentDescription = "Start logo",
-                                modifier = Modifier.size(14.dp)
+                                modifier = Modifier.size(18.dp)
                             )
 
                             Spacer(modifier = Modifier.width(6.dp))
@@ -208,7 +223,7 @@ fun BedtimeContent(
                             Text(
                                 text = "Start",
                                 color = TextSecondary,
-                                fontSize = 14.sp,
+                                fontSize = 18.sp,
                                 fontFamily = Poppins
                             )
                         }
@@ -217,7 +232,7 @@ fun BedtimeContent(
                             text = state.startTime,
                             color = TextPrimary,
                             fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             fontFamily = Poppins,
                             modifier = Modifier.padding(top = 4.dp)
                         )
@@ -225,10 +240,11 @@ fun BedtimeContent(
 
                     VerticalDivider(
                         thickness = 1.dp,
-                        color = TextSecondary,
+                        color = TextSecondary.copy(alpha = 0.25f),
                         modifier = Modifier
                             .padding(vertical = 16.dp)
-                            .width(32.dp)
+                            .width(1.dp)
+                            .height(40.dp)
                     )
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -236,7 +252,7 @@ fun BedtimeContent(
                             Image(
                                 painter = painterResource(id = R.drawable.ic_sun),
                                 contentDescription = "End logo",
-                                modifier = Modifier.size(14.dp)
+                                modifier = Modifier.size(18.dp)
                             )
 
                             Spacer(modifier = Modifier.width(6.dp))
@@ -244,7 +260,7 @@ fun BedtimeContent(
                             Text(
                                 text = "End",
                                 color = TextSecondary,
-                                fontSize = 14.sp,
+                                fontSize = 18.sp,
                                 fontFamily = Poppins
                             )
                         }
@@ -252,7 +268,7 @@ fun BedtimeContent(
                             text = state.endTime,
                             color = TextPrimary,
                             fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             fontFamily = Poppins,
                             modifier = Modifier.padding(top = 4.dp)
                         )
@@ -275,7 +291,7 @@ fun BedtimeContent(
                     text = "Schedule",
                     color = TextPrimary,
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     fontFamily = Poppins
                 )
 
@@ -308,7 +324,7 @@ fun BedtimeContent(
                                 text = state.startTime,
                                 color = TextPrimary,
                                 fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 fontFamily = Poppins
                             )
                             Image(
@@ -344,7 +360,7 @@ fun BedtimeContent(
                                 text = state.endTime,
                                 color = TextPrimary,
                                 fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 fontFamily = Poppins
                             )
                             Image(
@@ -370,7 +386,7 @@ fun BedtimeContent(
                     text = "Allowed During Bedtime",
                     color = TextPrimary,
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     fontFamily = Poppins,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -449,6 +465,8 @@ fun ExceptionToggleItem(
                 modifier = Modifier.size(20.dp)
             )
 
+            Spacer(modifier = Modifier.width(12.dp))
+
             Text(
                 text = label,
                 color = TextPrimary,
@@ -476,9 +494,43 @@ private fun BedtimeScreenPreview() {
     BedtimeContent(
         state = BedtimeUiState(
             isScheduleEnabled = true,
-            startTime = "10:00 PM",
-            endTime = "07:00 AM"
+            startTime = "12:00 AM",
+            endTime = "07:30 AM"
         ),
         onToggleBedtimeMode = {}
     )
+}
+
+private fun calculateTimeAngle(time: String): Float {
+    return try {
+        val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+        val localTime = LocalTime.parse(time, formatter)
+        val hour = localTime.hour % 12
+        val minute = localTime.minute
+        (hour * 30f) + (minute * 0.5f) - 90f
+    } catch (e: Exception) {
+        -150f // Default for 10:00
+    }
+}
+
+private fun calculateSweepAngle(start: String, end: String): Float {
+    return try {
+        val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+        val startTime = LocalTime.parse(start, formatter)
+        val endTime = LocalTime.parse(end, formatter)
+
+        val startMinutes = startTime.hour * 60 + startTime.minute
+        var endMinutes = endTime.hour * 60 + endTime.minute
+
+        if (endMinutes < startMinutes) {
+            endMinutes += 24 * 60
+        }
+
+        val durationMinutes = endMinutes - startMinutes
+        // On a 12-hour clock visual, we represent the proportion of the 12-hour cycle.
+        // If sleep is 9 hours, it's (9/12) * 360 = 270 degrees.
+        (durationMinutes / 720f) * 360f
+    } catch (e: Exception) {
+        270f // Default for 9 hours
+    }
 }
