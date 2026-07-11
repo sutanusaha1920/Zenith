@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,13 +20,22 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.VerticalDivider
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -67,17 +77,65 @@ fun BedtimeScreen(
 
     BedtimeContent(
         state = state,
-        onToggleBedtimeMode = { viewModel.toggleBedtimeMode(it) }
+        onToggleBedtimeMode = { viewModel.toggleBedtimeMode(it) },
+        onUpdateTime = { start, end -> viewModel.updateScheduleWindow(start, end) }
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BedtimeContent(
     state: BedtimeUiState,
-    onToggleBedtimeMode: (Boolean) -> Unit
+    onToggleBedtimeMode: (Boolean) -> Unit,
+    onUpdateTime: (String, String) -> Unit
 ) {
     val startAngle = calculateTimeAngle(state.startTime)
     val sweepAngle = calculateSweepAngle(state.startTime, state.endTime)
+
+    var showStartTimePicker by remember { mutableStateOf(false) }
+    var showEndTimePicker by remember { mutableStateOf(false) }
+
+    if (showStartTimePicker) {
+        val time = parseTimeToLocalTime(state.startTime)
+        val timePickerState = rememberTimePickerState(
+            initialHour = time.hour,
+            initialMinute = time.minute,
+            is24Hour = false
+        )
+        TimePickerDialog(
+            onDismissRequest = { showStartTimePicker = false },
+            onConfirm = {
+                val formattedTime = formatLocalTimeToUserTime(
+                    LocalTime.of(timePickerState.hour, timePickerState.minute)
+                )
+                onUpdateTime(formattedTime, state.endTime)
+                showStartTimePicker = false
+            }
+        ) {
+            TimePicker(state = timePickerState)
+        }
+    }
+
+    if (showEndTimePicker) {
+        val time = parseTimeToLocalTime(state.endTime)
+        val timePickerState = rememberTimePickerState(
+            initialHour = time.hour,
+            initialMinute = time.minute,
+            is24Hour = false
+        )
+        TimePickerDialog(
+            onDismissRequest = { showEndTimePicker = false },
+            onConfirm = {
+                val formattedTime = formatLocalTimeToUserTime(
+                    LocalTime.of(timePickerState.hour, timePickerState.minute)
+                )
+                onUpdateTime(state.startTime, formattedTime)
+                showEndTimePicker = false
+            }
+        ) {
+            TimePicker(state = timePickerState)
+        }
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -192,10 +250,17 @@ fun BedtimeContent(
 
 
                         Text(
-                            text = "Duration",
+                            text = calculateDuration(state.startTime, state.endTime),
                             color = TextPrimary,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.SemiBold,
+                            fontFamily = Poppins
+                        )
+
+                        Text(
+                            text = "Blocked",
+                            color = TextSecondary,
+                            fontSize = 16.sp,
                             fontFamily = Poppins
                         )
                     }
@@ -316,6 +381,7 @@ fun BedtimeContent(
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(InputBg)
                                 .border(1.dp, OuterCardStrokePrimary, RoundedCornerShape(14.dp))
+                                .clickable { showStartTimePicker = true }
                                 .padding(horizontal = 16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
@@ -352,6 +418,7 @@ fun BedtimeContent(
                                 .clip(RoundedCornerShape(14.dp))
                                 .background(InputBg)
                                 .border(1.dp, OuterCardStrokePrimary, RoundedCornerShape(14.dp))
+                                .clickable { showEndTimePicker = true }
                                 .padding(horizontal = 16.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
@@ -398,11 +465,25 @@ fun BedtimeContent(
                     onToggle = {}
                 )
 
+                HorizontalDivider(
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp),
+                    thickness = 0.25.dp,
+                    color = TextSecondary.copy(alpha = 0.9f)
+                )
+
                 ExceptionToggleItem(
                     label = "Alarm clock",
                     icon = R.drawable.ic_alarm,
                     checked = true,
                     onToggle = {}
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp),
+                    thickness = 0.25.dp,
+                    color = TextSecondary.copy(alpha = 0.9f)
                 )
 
                 ExceptionToggleItem(
@@ -497,8 +578,47 @@ private fun BedtimeScreenPreview() {
             startTime = "12:00 AM",
             endTime = "07:30 AM"
         ),
-        onToggleBedtimeMode = {}
+        onToggleBedtimeMode = {},
+        onUpdateTime = { _, _ -> }
     )
+}
+
+@Composable
+fun TimePickerDialog(
+    onDismissRequest: () -> Unit,
+    onConfirm: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("OK")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text("Cancel")
+            }
+        },
+        text = {
+            content()
+        }
+    )
+}
+
+private fun parseTimeToLocalTime(time: String): LocalTime {
+    return try {
+        val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+        LocalTime.parse(time, formatter)
+    } catch (e: Exception) {
+        LocalTime.of(0, 0)
+    }
+}
+
+private fun formatLocalTimeToUserTime(time: LocalTime): String {
+    val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+    return time.format(formatter)
 }
 
 private fun calculateTimeAngle(time: String): Float {
@@ -532,5 +652,23 @@ private fun calculateSweepAngle(start: String, end: String): Float {
         (durationMinutes / 720f) * 360f
     } catch (e: Exception) {
         270f // Default for 9 hours
+    }
+}
+
+
+private fun calculateDuration(start: String, end: String): String {
+    return try {
+        val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
+        val startTime = LocalTime.parse(start, formatter)
+        var endTime = LocalTime.parse(end, formatter)
+
+        var durationMinutes = java.time.Duration.between(startTime, endTime).toMinutes()
+        if (durationMinutes < 0) durationMinutes += 24 * 60
+
+        val hours = durationMinutes / 60
+        val minutes = durationMinutes % 60
+        "${hours}h ${minutes}m"
+    } catch (e: Exception) {
+        "0h 0m"
     }
 }
