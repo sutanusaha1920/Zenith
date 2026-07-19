@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -29,7 +30,7 @@ class AuthPreferences @Inject constructor(
     companion object {
         private val KEY_PIN_HASH = stringPreferencesKey("parental_pin_hash")
         private val KEY_IS_DEVICE_ADMIN_ENABLED = booleanPreferencesKey("is_device_admin_enabled")
-        private val KEY_TOTAL_SCREEN_TIME_LIMIT = stringPreferencesKey("total_screen_time_limit")
+        private val KEY_DEVICE_SCREEN_TIME_LIMIT = floatPreferencesKey("total_screen_time_limit")
         private val KEY_IS_BEDTIME_ENABLED = booleanPreferencesKey("is_bedtime_enabled")
         private val KEY_BEDTIME_START = stringPreferencesKey("bedtime_start_time")
         private val KEY_BEDTIME_END = stringPreferencesKey("bedtime_end_time")
@@ -83,13 +84,13 @@ class AuthPreferences @Inject constructor(
         }
     }
 
-//    val totalScreenTimeLimit: Flow<String> = context.dataStore.data.map { preferences ->
-//        preferences[KEY_TOTAL_SCREEN_TIME_LIMIT] ?: ""
-//    }
-//
-//    suspend fun setTotalScreenTimeLimit(limit: String) {
-//        context.dataStore.edit { preferences ->
-//            preferences[KEY_TOTAL_SCREEN_TIME_LIMIT] = limit
-//        }
-//    }
+    val deviceScreenTimeLimit: Flow<Float> = context.dataStore.data.map { preferences ->
+        preferences[KEY_DEVICE_SCREEN_TIME_LIMIT] ?: 5.0f
+    }
+
+    suspend fun setDeviceScreenTimeLimit(limit: Float) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_DEVICE_SCREEN_TIME_LIMIT] = limit
+        }
+    }
 }
