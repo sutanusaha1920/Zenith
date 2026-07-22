@@ -1,4 +1,4 @@
-package sutanu.apps.zenith.presentation.timer
+package sutanu.apps.zenith.presentation.timer.device_timer
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -13,7 +13,7 @@ import javax.inject.Inject
 class DeviceTimerViewModel @Inject constructor(
     private val manageDeviceLimitUseCase: ManageDeviceLimitUseCase
 ) : ViewModel() {
-    
+
     private val _uiState = MutableStateFlow(DeviceTimerUiState())
     val uiState: StateFlow<DeviceTimerUiState> = _uiState.asStateFlow()
 

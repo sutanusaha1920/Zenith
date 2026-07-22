@@ -1,4 +1,4 @@
-package sutanu.apps.zenith.presentation.timer
+package sutanu.apps.zenith.presentation.timer.app_timer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
