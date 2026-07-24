@@ -1,4 +1,4 @@
-package sutanu.apps.zenith.presentation.timer.device_timer
+package sutanu.apps.zenith.presentation.screen_timer.device_timer
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

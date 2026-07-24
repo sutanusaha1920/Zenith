@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.os.Build
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
@@ -16,7 +17,7 @@ import javax.inject.Singleton
 
 @Singleton
 class AppTimerRepositoryImpl @Inject constructor(
-    private val context: Context,
+    @ApplicationContext private val context: Context,
     private val appLimitDao: AppLimitDao
 ) : AppTimerRepository {
     override fun getAppLimitsFlow(): Flow<List<AppLimitEntity>> = appLimitDao.getAllAppLimitsFlow()
