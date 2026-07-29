@@ -3,6 +3,7 @@ package sutanu.apps.zenith.presentation.screen_timer.device_timer.ui
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,6 +45,7 @@ import sutanu.apps.zenith.presentation.ui.theme.SurfacePrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextPrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
 import androidx.compose.ui.tooling.preview.Preview
+import sutanu.apps.zenith.R
 import sutanu.apps.zenith.domain.model.DeviceTimerUiState
 import sutanu.apps.zenith.presentation.ui.theme.OuterCardStrokePrimary
 import sutanu.apps.zenith.presentation.ui.theme.SurfaceSecondary
@@ -137,6 +141,7 @@ fun DeviceTimerContent(
                 }
 
                 Column(
+                    modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     val formattedLimit = if (state.deviceLimitHours % 1 == 0f) 
@@ -147,8 +152,8 @@ fun DeviceTimerContent(
                     Text(
                         text = "${state.totalTimeUsedMinutes / 60}h ${state.totalTimeUsedMinutes % 60}m",
                         color = if (state.totalTimeUsedMinutes > limitMinutes) AlertPrimary else TextPrimary,
-                        fontSize = 36.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.SemiBold,
                         fontFamily = Poppins
                     )
 
@@ -178,13 +183,24 @@ fun DeviceTimerContent(
                     .padding(horizontal = 24.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = "Daily Limit",
-                    color = TextPrimary,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    fontFamily = Poppins
-                )
+
+                Row {
+                    Image(
+                        painter = painterResource(R.drawable.ic_clock_2),
+                        contentDescription = "Clock Icon",
+                        modifier = Modifier.size(24.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Text(
+                        text = "Daily Limit",
+                        color = TextPrimary,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        fontFamily = Poppins
+                    )
+                }
 
                 val formattedLimit = if (state.deviceLimitHours % 1 == 0f) 
                     state.deviceLimitHours.toInt().toString() 
