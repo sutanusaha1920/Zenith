@@ -1,6 +1,10 @@
 package sutanu.apps.zenith.presentation.screen_timer.device_timer.ui
 
+import android.content.Intent
+import android.net.Uri
+import android.provider.Settings
 import androidx.compose.animation.core.animateFloatAsState
+import java.util.Locale
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -19,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -26,12 +31,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -66,6 +71,8 @@ fun DeviceTimerContent(
     state: DeviceTimerUiState,
     onUpdateLimit: (Float) -> Unit
 ) {
+    val context = LocalContext.current
+
     val limitMinutes = state.deviceLimitHours * 60
     val progressPercentage = if (limitMinutes > 0) {
         (state.totalTimeUsedMinutes / limitMinutes).coerceIn(0f, 1f)
@@ -85,6 +92,17 @@ fun DeviceTimerContent(
             .background(SurfacePrimary)
             .padding(start = 16.dp, end = 16.dp)
     ) {
+        if (state.needsUsagePermission) {
+            Spacer(modifier = Modifier.height(16.dp))
+            PermissionPrompt(onGrantClick = {
+                val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
+                    data = Uri.fromParts("package", context.packageName, null)
+                }
+                context.startActivity(intent)
+            })
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -144,10 +162,7 @@ fun DeviceTimerContent(
                     modifier = Modifier.padding(start = 10.dp, end = 10.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    val formattedLimit = if (state.deviceLimitHours % 1 == 0f) 
-                        state.deviceLimitHours.toInt().toString() 
-                    else 
-                        state.deviceLimitHours.toString()
+                    val formattedLimit = "%.1f".format(Locale.US, state.deviceLimitHours).replace(".0", "")
 
                     Text(
                         text = "${state.totalTimeUsedMinutes / 60}h ${state.totalTimeUsedMinutes % 60}m",
@@ -202,10 +217,7 @@ fun DeviceTimerContent(
                     )
                 }
 
-                val formattedLimit = if (state.deviceLimitHours % 1 == 0f) 
-                    state.deviceLimitHours.toInt().toString() 
-                else 
-                    state.deviceLimitHours.toString()
+                val formattedLimit = "%.1f".format(Locale.US, state.deviceLimitHours).replace(".0", "")
 
                 Text(
                     text = "${formattedLimit}h",
@@ -221,6 +233,7 @@ fun DeviceTimerContent(
                 value = state.deviceLimitHours,
                 onValueChange = onUpdateLimit,
                 valueRange = 1f..12f,
+                steps = 21,
                 colors = SliderDefaults.colors(
                     activeTrackColor = InfoPrimary,
                     inactiveTrackColor = ControlDark
@@ -245,7 +258,8 @@ fun DeviceTimerContent(
                             inactiveTrackColor = ControlDark
                         ),
                         thumbTrackGapSize = 0.dp,
-                        drawStopIndicator = { }
+                        drawStopIndicator = { },
+                        drawTick = { _, _ -> }
                     )
                 }
             )
@@ -285,5 +299,50 @@ fun DeviceTimerPreview() {
             ),
             onUpdateLimit = {}
         )
+    }
+}
+
+@Composable
+fun PermissionPrompt(onGrantClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(AlertPrimary.copy(alpha = 0.1f))
+            .border(1.dp, AlertPrimary.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Image(
+            painter = painterResource(R.drawable.ic_clock_2),
+            contentDescription = null,
+            modifier = Modifier.size(32.dp)
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Text(
+            text = "Usage Access Required",
+            color = AlertPrimary,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = Poppins
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "To show your screen time accurately, Zenith needs usage access permission.",
+            color = TextSecondary,
+            fontSize = 14.sp,
+            fontFamily = Poppins,
+            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(
+            onClick = onGrantClick,
+            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                containerColor = AlertPrimary
+            ),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("Grant Access", color = androidx.compose.ui.graphics.Color.White)
+        }
     }
 }

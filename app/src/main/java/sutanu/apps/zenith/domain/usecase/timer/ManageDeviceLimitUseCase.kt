@@ -7,6 +7,8 @@ class ManageDeviceLimitUseCase @Inject constructor(
     private val repository: DeviceTimerRepository
 ) {
 
+    fun getLimit() = repository.deviceLimitFlow
+
     fun isEnabled() = repository.isTimerEnabledFlow
 
     suspend fun updateLimit(hours: Float) = repository.saveDeviceLimit(hours)

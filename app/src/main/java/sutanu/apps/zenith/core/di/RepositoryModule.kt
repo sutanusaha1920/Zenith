@@ -9,11 +9,13 @@ import sutanu.apps.zenith.data.repository_impl.AuthRepositoryImpl
 import sutanu.apps.zenith.data.repository_impl.BedtimeRepositoryImpl
 import sutanu.apps.zenith.data.repository_impl.DeviceTimerRepositoryImpl
 import sutanu.apps.zenith.data.repository_impl.SosRepositoryImpl
+import sutanu.apps.zenith.data.repository_impl.UsageStatsRepositoryImpl
 import sutanu.apps.zenith.domain.repository.AppTimerRepository
 import sutanu.apps.zenith.domain.repository.AuthRepository
 import sutanu.apps.zenith.domain.repository.BedtimeRepository
 import sutanu.apps.zenith.domain.repository.DeviceTimerRepository
 import sutanu.apps.zenith.domain.repository.SosRepository
+import sutanu.apps.zenith.domain.repository.UsageStatsRepository
 import javax.inject.Singleton
 
 @Module
@@ -49,5 +51,11 @@ abstract class RepositoryModule {
     abstract fun bindAppTimerRepository(
         appTimerRepositoryImpl: AppTimerRepositoryImpl
     ): AppTimerRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindUsageStatsRepository(
+        usageStatsRepositoryImpl: UsageStatsRepositoryImpl
+    ): UsageStatsRepository
 
 }
