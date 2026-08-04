@@ -1,6 +1,7 @@
 package sutanu.apps.zenith.data.repository_impl
 
 import android.app.AppOpsManager
+import android.app.usage.UsageEvents
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.os.Process
@@ -54,5 +55,38 @@ class UsageStatsRepositoryImpl @Inject constructor(
             context.packageName
         )
         return mode == AppOpsManager.MODE_ALLOWED
+    }
+
+    override fun getAppsUsageMinutes(packageNames: List<String>): Map<String, Int> {
+        val calendar = Calendar.getInstance()
+        val endTime = calendar.timeInMillis
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        val startTime = calendar.timeInMillis
+
+        val stats = usageStatsManager.queryAndAggregateUsageStats(startTime, endTime)
+
+        return packageNames.associateWith { pkg ->
+            val usage = stats[pkg]
+            if (usage != null) {
+                (usage.totalTimeInForeground / 1000 / 60).toInt()
+            } else 0
+        }
+    }
+
+    override fun getForegroundApp(): String? {
+        val time = System.currentTimeMillis()
+        val stats = usageStatsManager.queryEvents(time - 1000 * 60, time)
+        val event = UsageEvents.Event()
+        var lastApp: String? = null
+        while (stats.hasNextEvent()) {
+            stats.getNextEvent(event)
+            if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
+                lastApp = event.packageName
+            }
+        }
+        return lastApp
     }
 }

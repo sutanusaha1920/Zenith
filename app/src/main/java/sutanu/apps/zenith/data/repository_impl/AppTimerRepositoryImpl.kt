@@ -41,6 +41,11 @@ class AppTimerRepositoryImpl @Inject constructor(
 
     override suspend fun saveAppLimit(entity: AppLimitEntity) = appLimitDao.saveAppLimit(entity)
 
+    override suspend fun updateDailyAppUsage(packageName: String, minutes: Int) = appLimitDao.updateDailyAppUsage(
+        packageName = packageName,
+        minutes = minutes
+    )
+
     override suspend fun deleteAppLimit(packageName: String) = appLimitDao.deleteAppLimit(packageName)
 
 }

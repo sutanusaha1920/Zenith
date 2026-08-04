@@ -19,6 +19,9 @@ interface AppLimitDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveAppLimit(appLimit: AppLimitEntity)
 
+    @Query("UPDATE app_limits SET dailyMinutesUsed = :minutes WHERE packageName = :packageName")
+    suspend fun updateDailyAppUsage(packageName: String, minutes: Int)
+
     @Query("DELETE FROM app_limits WHERE packageName = :packageName")
     suspend fun deleteAppLimit(packageName: String)
 }

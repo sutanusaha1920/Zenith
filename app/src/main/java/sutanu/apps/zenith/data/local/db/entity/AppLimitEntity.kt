@@ -8,5 +8,6 @@ data class AppLimitEntity(
     @PrimaryKey val packageName: String,
     val appName: String,
     val dailyLimitMinutes: Int,
+    val dailyMinutesUsed: Int = 0,
     val isBlockedText: Boolean = false,
 )

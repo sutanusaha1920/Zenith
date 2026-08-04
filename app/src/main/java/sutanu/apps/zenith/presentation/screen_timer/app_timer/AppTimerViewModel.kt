@@ -6,6 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import sutanu.apps.zenith.data.local.db.entity.AppLimitEntity
 import sutanu.apps.zenith.domain.model.AppInfoUiState
@@ -30,7 +31,7 @@ class AppTimerViewModel @Inject constructor(
     private fun loadData() {
         viewModelScope.launch {
             manageAppLimitsUseCase.executeGetLimits().collect { limits ->
-                _uiState.value = _uiState.value.copy(individualLimits = limits)
+                _uiState.update { it.copy(individualLimits = limits) }
             }
         }
 

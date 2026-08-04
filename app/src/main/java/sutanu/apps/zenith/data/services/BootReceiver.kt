@@ -1,0 +1,21 @@
+package sutanu.apps.zenith.data.services
+
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.os.Build
+import dagger.hilt.android.AndroidEntryPoint
+
+@AndroidEntryPoint
+class BootReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
+            val serviceIntent = Intent(context, UsageSyncService::class.java)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                context.startForegroundService(serviceIntent)
+            } else {
+                context.startService(serviceIntent)
+            }
+        }
+    }
+}
