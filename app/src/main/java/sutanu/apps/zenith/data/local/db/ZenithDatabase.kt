@@ -11,7 +11,7 @@ import sutanu.apps.zenith.data.local.db.entity.SosContactEntity
 
 @Database(
     entities = [SosContactEntity::class, AppLimitEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 
@@ -30,7 +30,9 @@ abstract class ZenithDatabase : RoomDatabase() {
                     context.applicationContext,
                     ZenithDatabase::class.java,
                     "zenith_database"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration(true)
+                    .build()
                 INSTANCE = instance
                 instance
             }
