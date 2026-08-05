@@ -13,6 +13,8 @@ interface AppTimerRepository {
 
     suspend fun saveAppLimit(entity: AppLimitEntity)
 
+    suspend fun getAppLimitSync(packageName: String): AppLimitEntity?
+
     suspend fun updateDailyAppUsage(packageName: String, minutes: Int)
 
     suspend fun deleteAppLimit(packageName: String)

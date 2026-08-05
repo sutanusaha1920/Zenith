@@ -38,7 +38,8 @@ class UsageStatsRepositoryImpl @Inject constructor(
                     endTime
                 )
 
-                val totalTimeMs = stats?.sumOf { it.totalTimeInForeground } ?: 0L
+                val totalTimeMs = stats?.filter { it.firstTimeStamp >= startTime }
+                    ?.sumOf { it.totalTimeInForeground } ?: 0L
                 emit((totalTimeMs / 1000 / 60).toInt())
             } else {
                 emit(0)
@@ -66,21 +67,29 @@ class UsageStatsRepositoryImpl @Inject constructor(
         calendar.set(Calendar.MILLISECOND, 0)
         val startTime = calendar.timeInMillis
 
-        val stats = usageStatsManager.queryAndAggregateUsageStats(startTime, endTime)
+        val statsList = usageStatsManager.queryAndAggregateUsageStats(
+            startTime,
+            endTime
+        )
 
         return packageNames.associateWith { pkg ->
-            val usage = stats[pkg]
-            if (usage != null) {
-                (usage.totalTimeInForeground / 1000 / 60).toInt()
+            val usageMs = statsList[pkg]
+            if (usageMs != null) {
+                (usageMs.totalTimeInForeground / 1000 / 60).toInt()
             } else 0
         }
     }
 
     override fun getForegroundApp(): String? {
-        val time = System.currentTimeMillis()
-        val stats = usageStatsManager.queryEvents(time - 1000 * 60, time)
+        val calendar = Calendar.getInstance()
+        val endTime = calendar.timeInMillis
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        val startTime = calendar.timeInMillis
+
+        val stats = usageStatsManager.queryEvents(startTime, endTime)
         val event = UsageEvents.Event()
         var lastApp: String? = null
+
         while (stats.hasNextEvent()) {
             stats.getNextEvent(event)
             if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {

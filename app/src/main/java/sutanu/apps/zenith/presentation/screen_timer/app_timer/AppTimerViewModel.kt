@@ -1,5 +1,6 @@
 package sutanu.apps.zenith.presentation.screen_timer.app_timer
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -72,6 +73,7 @@ class AppTimerViewModel @Inject constructor(
 
     fun deleteLimit(packageName: String) {
         viewModelScope.launch {
+            Log.d("ZenithViewModel", "Deleting limit for: $packageName")
             manageAppLimitsUseCase.executeDeleteLimit(packageName)
         }
     }

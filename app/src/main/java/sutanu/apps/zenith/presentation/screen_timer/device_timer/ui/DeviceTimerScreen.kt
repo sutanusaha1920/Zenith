@@ -80,10 +80,16 @@ fun DeviceTimerContent(
         0f
     }
 
-    val sweepAngleAnimated by animateFloatAsState(
-        targetValue = progressPercentage * 240f,
+    val outerSweepAngleAnimated by animateFloatAsState(
+        targetValue = progressPercentage * 260f,
         animationSpec = tween(durationMillis = 800),
-        label = "Screen Time Animation",
+        label = "Outer Arc Screen Time Animation",
+    )
+
+    val innerSweepAngleAnimated by animateFloatAsState(
+        targetValue = 260f,
+        animationSpec = tween(durationMillis = 800),
+        label = "Inner Arc Screen Time Animation",
     )
 
     Column(
@@ -126,8 +132,8 @@ fun DeviceTimerContent(
                     // Inner Arc
                     drawArc(
                         color = ControlDark,
-                        startAngle = 150f,
-                        sweepAngle = 240f,
+                        startAngle = 140f,
+                        sweepAngle = innerSweepAngleAnimated,
                         useCenter = false,
                         style = Stroke(width = strokeW, cap = StrokeCap.Round),
                         size = androidx.compose.ui.geometry.Size(
@@ -143,8 +149,8 @@ fun DeviceTimerContent(
                     // Outer Arc
                     drawArc(
                         color = if (state.totalTimeUsedMinutes > limitMinutes) AlertPrimary else InfoPrimary,
-                        startAngle = 150f,
-                        sweepAngle = sweepAngleAnimated,
+                        startAngle = 140f,
+                        sweepAngle = outerSweepAngleAnimated,
                         useCenter = false,
                         style = Stroke(width = strokeW, cap = StrokeCap.Round),
                         size = androidx.compose.ui.geometry.Size(
