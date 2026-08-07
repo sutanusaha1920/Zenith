@@ -56,7 +56,7 @@ import androidx.compose.ui.unit.sp
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import sutanu.apps.zenith.R
 import sutanu.apps.zenith.data.local.db.entity.AppLimitEntity
-import sutanu.apps.zenith.domain.model.AppTimerUiState
+import sutanu.apps.zenith.domain.model.AppTimer
 import sutanu.apps.zenith.presentation.screen_timer.app_timer.AppTimerViewModel
 import sutanu.apps.zenith.presentation.ui.theme.AlertPrimary
 import sutanu.apps.zenith.presentation.ui.theme.ControlDark
@@ -69,7 +69,7 @@ import sutanu.apps.zenith.presentation.ui.theme.TextPrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
 
 import androidx.compose.ui.tooling.preview.Preview
-import sutanu.apps.zenith.domain.model.AppInfoUiState
+import sutanu.apps.zenith.domain.model.AppInfo
 import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
 
 @Composable
@@ -89,10 +89,10 @@ fun AppTimerScreen(viewModel: AppTimerViewModel) {
 
 @Composable
 fun AppTimerContent(
-    state: AppTimerUiState,
+    state: AppTimer,
     onAddLimitClick: () -> Unit,
     onDeleteLimit: (String) -> Unit,
-    onSelectApp: (AppInfoUiState) -> Unit,
+    onSelectApp: (AppInfo) -> Unit,
     onUpdateDraftSlider: (Float) -> Unit,
     onApplyLimit: () -> Unit,
     onDismissDialog: () -> Unit
@@ -172,8 +172,8 @@ fun AppTimerContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddAppLimitDialog(
-    state: AppTimerUiState,
-    onSelectApp: (AppInfoUiState) -> Unit,
+    state: AppTimer,
+    onSelectApp: (AppInfo) -> Unit,
     onUpdateDraftSlider: (Float) -> Unit,
     onApplyLimit: () -> Unit,
     onDismiss: () -> Unit
@@ -507,7 +507,7 @@ fun AppTimerPreview() {
     ZenithTheme {
         Box(modifier = Modifier.padding(16.dp)) {
             AppTimerContent(
-                state = AppTimerUiState(
+                state = AppTimer(
                     individualLimits = listOf(
                         AppLimitEntity(
                             packageName = "com.android.chrome",
@@ -521,9 +521,9 @@ fun AppTimerPreview() {
                         )
                     ),
                     installedAppsList = listOf(
-                        AppInfoUiState("com.android.chrome", "Chrome", null),
-                        AppInfoUiState("com.google.android.youtube", "YouTube", null),
-                        AppInfoUiState("com.whatsapp", "WhatsApp", null)
+                        AppInfo("com.android.chrome", "Chrome", null),
+                        AppInfo("com.google.android.youtube", "YouTube", null),
+                        AppInfo("com.whatsapp", "WhatsApp", null)
                     )
                 ),
                 onAddLimitClick = {},

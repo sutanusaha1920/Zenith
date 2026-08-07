@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import sutanu.apps.zenith.data.local.db.entity.SosContactEntity
-import sutanu.apps.zenith.domain.model.SosUiState
+import sutanu.apps.zenith.domain.model.Sos
 import sutanu.apps.zenith.domain.repository.SosRepository
 import sutanu.apps.zenith.domain.usecase.sos.AddTrustedContactUseCase
 import sutanu.apps.zenith.domain.usecase.sos.DeleteContactUseCase
@@ -22,8 +22,8 @@ class SosViewModel @Inject constructor(
     private val deleteContactUseCase: DeleteContactUseCase
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(SosUiState())
-    val uiState: StateFlow<SosUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(Sos())
+    val uiState: StateFlow<Sos> = _uiState.asStateFlow()
 
     init {
         observeTrustedContacts()

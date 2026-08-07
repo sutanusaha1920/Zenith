@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import sutanu.apps.zenith.domain.model.BedtimeUiState
+import sutanu.apps.zenith.domain.model.Bedtime
 import sutanu.apps.zenith.domain.usecase.bedtime.GetBedtimeConfigurationUseCase
 import sutanu.apps.zenith.domain.usecase.bedtime.UpdateBedtimeScheduleUseCase
 import java.time.LocalTime
@@ -21,8 +21,8 @@ class BedtimeViewModel @Inject constructor(
     private val getBedtimeConfigurationUseCase: GetBedtimeConfigurationUseCase
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(BedtimeUiState())
-    val uiState: StateFlow<BedtimeUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(Bedtime())
+    val uiState: StateFlow<Bedtime> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {

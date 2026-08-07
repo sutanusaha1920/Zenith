@@ -35,7 +35,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import sutanu.apps.zenith.presentation.navigation.TimerTab
 import sutanu.apps.zenith.presentation.screen_timer.app_timer.AppTimerViewModel
 import sutanu.apps.zenith.presentation.screen_timer.device_timer.DeviceTimerViewModel
-import sutanu.apps.zenith.presentation.ui.theme.BackgroundPrimary
 import sutanu.apps.zenith.presentation.ui.theme.ControlDark
 import sutanu.apps.zenith.presentation.ui.theme.InfoPrimary
 import sutanu.apps.zenith.presentation.ui.theme.Poppins
@@ -44,9 +43,9 @@ import sutanu.apps.zenith.presentation.ui.theme.TextPrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
 
 import androidx.compose.ui.tooling.preview.Preview
-import sutanu.apps.zenith.domain.model.AppInfoUiState
-import sutanu.apps.zenith.domain.model.AppTimerUiState
-import sutanu.apps.zenith.domain.model.DeviceTimerUiState
+import sutanu.apps.zenith.domain.model.AppInfo
+import sutanu.apps.zenith.domain.model.AppTimer
+import sutanu.apps.zenith.domain.model.DeviceTimer
 import sutanu.apps.zenith.presentation.screen_timer.app_timer.ui.AppTimerContent
 import sutanu.apps.zenith.presentation.screen_timer.device_timer.ui.DeviceTimerContent
 import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
@@ -75,13 +74,13 @@ fun ScreenTimerContainer(
 
 @Composable
 fun ScreenTimerContent(
-    deviceState: DeviceTimerUiState,
-    appState: AppTimerUiState,
+    deviceState: DeviceTimer,
+    appState: AppTimer,
     onToggleMasterTimer: (Boolean) -> Unit,
     onUpdateDeviceLimit: (Float) -> Unit,
     onAddLimitClick: () -> Unit,
     onDeleteLimit: (String) -> Unit,
-    onSelectApp: (AppInfoUiState) -> Unit,
+    onSelectApp: (AppInfo) -> Unit,
     onUpdateDraftSlider: (Float) -> Unit,
     onApplyLimit: () -> Unit,
     onDismissDialog: () -> Unit
@@ -209,8 +208,8 @@ fun ScreenTimerContent(
 fun ScreenTimerContainerPreview() {
     ZenithTheme {
         ScreenTimerContent(
-            deviceState = DeviceTimerUiState(),
-            appState = AppTimerUiState(),
+            deviceState = DeviceTimer(),
+            appState = AppTimer(),
             onToggleMasterTimer = {},
             onUpdateDeviceLimit = {},
             onAddLimitClick = {},

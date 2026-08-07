@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import sutanu.apps.zenith.domain.model.DeviceTimerUiState
+import sutanu.apps.zenith.domain.model.DeviceTimer
 import sutanu.apps.zenith.domain.usecase.timer.GetUsageStatsUseCase
 import sutanu.apps.zenith.domain.usecase.timer.ManageDeviceLimitUseCase
 import javax.inject.Inject
@@ -19,13 +19,13 @@ class DeviceTimerViewModel @Inject constructor(
     private val getUsageStatsUseCase: GetUsageStatsUseCase
 ) : ViewModel() {
 
-    val uiState: StateFlow<DeviceTimerUiState> = combine(
+    val uiState: StateFlow<DeviceTimer> = combine(
         manageDeviceLimitUseCase.getLimit(),
         manageDeviceLimitUseCase.isEnabled(),
         getUsageStatsUseCase.getTodayUsage()
     ) {
         limit, enabled, usage ->
-        DeviceTimerUiState(
+        DeviceTimer(
             deviceLimitHours = limit,
             isTimerEnabled = enabled,
             totalTimeUsedMinutes = usage,
@@ -34,7 +34,7 @@ class DeviceTimerViewModel @Inject constructor(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = DeviceTimerUiState()
+        initialValue = DeviceTimer()
     )
 
     fun toggleMasterTimer(enabled: Boolean) {

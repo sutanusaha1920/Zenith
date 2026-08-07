@@ -3,13 +3,13 @@ package sutanu.apps.zenith.domain.repository
 
 import kotlinx.coroutines.flow.Flow
 import sutanu.apps.zenith.data.local.db.entity.AppLimitEntity
-import sutanu.apps.zenith.domain.model.AppInfoUiState
+import sutanu.apps.zenith.domain.model.AppInfo
 
 interface AppTimerRepository {
 
     fun getAppLimitsFlow(): Flow<List<AppLimitEntity>>
 
-    suspend fun fetchInstalledApps(): List<AppInfoUiState>
+    suspend fun fetchInstalledApps(): List<AppInfo>
 
     suspend fun saveAppLimit(entity: AppLimitEntity)
 

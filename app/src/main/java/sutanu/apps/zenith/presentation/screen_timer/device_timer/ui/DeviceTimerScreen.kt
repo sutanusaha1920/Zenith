@@ -51,7 +51,7 @@ import sutanu.apps.zenith.presentation.ui.theme.TextPrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
 import androidx.compose.ui.tooling.preview.Preview
 import sutanu.apps.zenith.R
-import sutanu.apps.zenith.domain.model.DeviceTimerUiState
+import sutanu.apps.zenith.domain.model.DeviceTimer
 import sutanu.apps.zenith.presentation.ui.theme.OuterCardStrokePrimary
 import sutanu.apps.zenith.presentation.ui.theme.SurfaceSecondary
 import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
@@ -68,7 +68,7 @@ fun DeviceTimerScreen(viewModel: DeviceTimerViewModel) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeviceTimerContent(
-    state: DeviceTimerUiState,
+    state: DeviceTimer,
     onUpdateLimit: (Float) -> Unit
 ) {
     val context = LocalContext.current
@@ -299,7 +299,7 @@ fun DeviceTimerContent(
 fun DeviceTimerPreview() {
     ZenithTheme {
         DeviceTimerContent(
-            state = DeviceTimerUiState(
+            state = DeviceTimer(
                 totalTimeUsedMinutes = 135,
                 deviceLimitHours = 4.0f
             ),

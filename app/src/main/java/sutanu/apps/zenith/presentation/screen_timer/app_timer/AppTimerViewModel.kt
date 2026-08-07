@@ -10,8 +10,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import sutanu.apps.zenith.data.local.db.entity.AppLimitEntity
-import sutanu.apps.zenith.domain.model.AppInfoUiState
-import sutanu.apps.zenith.domain.model.AppTimerUiState
+import sutanu.apps.zenith.domain.model.AppInfo
+import sutanu.apps.zenith.domain.model.AppTimer
 import sutanu.apps.zenith.domain.usecase.apps.GetInstalledAppsUseCase
 import sutanu.apps.zenith.domain.usecase.apps.ManageAppLimitsUseCase
 import javax.inject.Inject
@@ -22,8 +22,8 @@ class AppTimerViewModel @Inject constructor(
     private val manageAppLimitsUseCase: ManageAppLimitsUseCase
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AppTimerUiState())
-    val uiState: StateFlow<AppTimerUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(AppTimer())
+    val uiState: StateFlow<AppTimer> = _uiState.asStateFlow()
 
     init {
         loadData()
@@ -46,7 +46,7 @@ class AppTimerViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(showAddLimitSection = visible)
     }
 
-    fun selectApp(app: AppInfoUiState?) {
+    fun selectApp(app: AppInfo?) {
         _uiState.value = _uiState.value.copy(selectedAppToLimit = app)
     }
 

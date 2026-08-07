@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import sutanu.apps.zenith.data.local.db.dao.AppLimitDao
 import sutanu.apps.zenith.data.local.db.entity.AppLimitEntity
-import sutanu.apps.zenith.domain.model.AppInfoUiState
+import sutanu.apps.zenith.domain.model.AppInfo
 import sutanu.apps.zenith.domain.repository.AppTimerRepository
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -22,7 +22,7 @@ class AppTimerRepositoryImpl @Inject constructor(
 ) : AppTimerRepository {
     override fun getAppLimitsFlow(): Flow<List<AppLimitEntity>> = appLimitDao.getAllAppLimitsFlow()
 
-    override suspend fun fetchInstalledApps(): List<AppInfoUiState> = withContext(Dispatchers.IO) {
+    override suspend fun fetchInstalledApps(): List<AppInfo> = withContext(Dispatchers.IO) {
         val packageManager = context.packageManager
 
         val apps = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -34,7 +34,7 @@ class AppTimerRepositoryImpl @Inject constructor(
 
         apps.asSequence()
             .filter { (it.flags and ApplicationInfo.FLAG_SYSTEM) == 0 || (it.flags and ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0 }
-            .map { AppInfoUiState(it.packageName, it.loadLabel(packageManager).toString(), it.loadIcon(packageManager)) }
+            .map { AppInfo(it.packageName, it.loadLabel(packageManager).toString(), it.loadIcon(packageManager)) }
             .sortedBy { it.appName.lowercase() }
             .toList()
     }

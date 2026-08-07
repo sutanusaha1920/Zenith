@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -50,7 +49,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import sutanu.apps.zenith.R
-import sutanu.apps.zenith.domain.model.BedtimeUiState
+import sutanu.apps.zenith.domain.model.Bedtime
 import sutanu.apps.zenith.presentation.bedtime.BedtimeViewModel
 import sutanu.apps.zenith.presentation.ui.theme.AlertPrimary
 import sutanu.apps.zenith.presentation.ui.theme.BackgroundPrimary
@@ -85,7 +84,7 @@ fun BedtimeScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BedtimeContent(
-    state: BedtimeUiState,
+    state: Bedtime,
     onToggleBedtimeMode: (Boolean) -> Unit,
     onUpdateTime: (String, String) -> Unit
 ) {
@@ -574,7 +573,7 @@ fun ExceptionToggleItem(
 @Composable
 private fun BedtimeScreenPreview() {
     BedtimeContent(
-        state = BedtimeUiState(
+        state = Bedtime(
             isScheduleEnabled = true,
             startTime = "12:00 AM",
             endTime = "07:30 AM"

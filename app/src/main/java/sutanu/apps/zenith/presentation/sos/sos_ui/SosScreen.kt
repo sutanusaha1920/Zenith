@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
 import sutanu.apps.zenith.R
-import sutanu.apps.zenith.domain.model.SosUiState
+import sutanu.apps.zenith.domain.model.Sos
 import sutanu.apps.zenith.data.local.db.entity.SosContactEntity
 import sutanu.apps.zenith.presentation.sos.SosViewModel
 import sutanu.apps.zenith.presentation.ui.theme.AlertPrimary
@@ -80,7 +80,7 @@ fun SosScreen(viewModel: SosViewModel) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SosScreenContent(
-    state: SosUiState,
+    state: Sos,
     onAddContactClick: () -> Unit,
     onDeleteContactClick: (SosContactEntity) -> Unit,
     onAddContactConfirm: (String, String) -> Unit,
@@ -501,7 +501,7 @@ fun AddContactBottomSheetContent(
 @Composable
 fun SosScreenPreview() {
     SosScreenContent(
-        state = SosUiState(
+        state = Sos(
             lastKnownLocation = "123, Salt Lake City, Sector V, Kolkata",
             gpsAccuracy = "Within 12 meters",
             trustedContacts = listOf(
