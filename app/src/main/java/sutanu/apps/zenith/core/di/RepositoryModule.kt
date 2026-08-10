@@ -4,12 +4,14 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import sutanu.apps.zenith.data.repository_impl.AlertRepositoryImpl
 import sutanu.apps.zenith.data.repository_impl.AppTimerRepositoryImpl
 import sutanu.apps.zenith.data.repository_impl.AuthRepositoryImpl
 import sutanu.apps.zenith.data.repository_impl.BedtimeRepositoryImpl
 import sutanu.apps.zenith.data.repository_impl.DeviceTimerRepositoryImpl
 import sutanu.apps.zenith.data.repository_impl.SosRepositoryImpl
 import sutanu.apps.zenith.data.repository_impl.UsageStatsRepositoryImpl
+import sutanu.apps.zenith.domain.repository.AlertRepository
 import sutanu.apps.zenith.domain.repository.AppTimerRepository
 import sutanu.apps.zenith.domain.repository.AuthRepository
 import sutanu.apps.zenith.domain.repository.BedtimeRepository
@@ -57,5 +59,11 @@ abstract class RepositoryModule {
     abstract fun bindUsageStatsRepository(
         usageStatsRepositoryImpl: UsageStatsRepositoryImpl
     ): UsageStatsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAlertRepository(
+        alertRepositoryImpl: AlertRepositoryImpl
+    ): AlertRepository
 
 }
