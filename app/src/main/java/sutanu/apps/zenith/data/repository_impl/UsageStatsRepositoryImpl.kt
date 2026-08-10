@@ -58,7 +58,7 @@ class UsageStatsRepositoryImpl @Inject constructor(
         return mode == AppOpsManager.MODE_ALLOWED
     }
 
-    override fun getAppsUsageMinutes(packageNames: List<String>): Map<String, Int> {
+    override suspend fun getAppsUsageMinutes(packageNames: List<String>): Map<String, Int> {
         val calendar = Calendar.getInstance()
         val endTime = calendar.timeInMillis
         calendar.set(Calendar.HOUR_OF_DAY, 0)
@@ -80,7 +80,7 @@ class UsageStatsRepositoryImpl @Inject constructor(
         }
     }
 
-    override fun getForegroundApp(): String? {
+    override suspend fun getForegroundApp(): String? {
         val calendar = Calendar.getInstance()
         val endTime = calendar.timeInMillis
         calendar.set(Calendar.HOUR_OF_DAY, 0)
