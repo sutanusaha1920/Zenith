@@ -2,6 +2,7 @@ package sutanu.apps.zenith.domain.repository
 
 import kotlinx.coroutines.flow.Flow
 import sutanu.apps.zenith.data.local.db.entity.AlertHistoryEntity
+import sutanu.apps.zenith.domain.model.AlertSeverity
 import sutanu.apps.zenith.domain.model.HomeAlert
 
 interface AlertRepository {
@@ -9,6 +10,8 @@ interface AlertRepository {
     fun getRecentAlerts(): Flow<List<HomeAlert>>
 
     suspend fun insertAlert(alert: HomeAlert)
+
+    suspend fun hasAlertedToday(packageName: String, severity: AlertSeverity): Boolean
 
     suspend fun deleteOldAlerts()
 }

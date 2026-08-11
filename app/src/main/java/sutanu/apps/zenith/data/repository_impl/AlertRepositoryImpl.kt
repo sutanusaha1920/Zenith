@@ -7,6 +7,7 @@ import sutanu.apps.zenith.data.local.db.entity.AlertHistoryEntity
 import sutanu.apps.zenith.domain.model.AlertSeverity
 import sutanu.apps.zenith.domain.model.HomeAlert
 import sutanu.apps.zenith.domain.repository.AlertRepository
+import java.util.Calendar
 import javax.inject.Inject
 
 class AlertRepositoryImpl @Inject constructor(
@@ -37,6 +38,25 @@ class AlertRepositoryImpl @Inject constructor(
             limitAtTrigger = alert.limit ?: ""
         )
         alertHistoryDao.insertAlert(entity)
+    }
+
+    override suspend fun hasAlertedToday(
+        packageName: String,
+        severity: AlertSeverity
+    ): Boolean {
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        val startOfDay = calendar.timeInMillis
+
+        return alertHistoryDao.hasAlertedToday(
+            packageName = packageName,
+            severity = severity.name,
+            startOfDay = startOfDay
+        )
     }
 
     override suspend fun deleteOldAlerts() {
