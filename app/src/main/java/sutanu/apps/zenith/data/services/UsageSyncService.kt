@@ -17,6 +17,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import sutanu.apps.zenith.R
+import sutanu.apps.zenith.domain.monitor.UsageMonitor
 import sutanu.apps.zenith.domain.repository.AppTimerRepository
 import sutanu.apps.zenith.domain.repository.UsageStatsRepository
 import javax.inject.Inject
@@ -26,6 +27,8 @@ class UsageSyncService : LifecycleService() {
 
     @Inject lateinit var appTimerRepository: AppTimerRepository
     @Inject lateinit var usageStatsRepository: UsageStatsRepository
+
+    @Inject lateinit var usageMonitor: UsageMonitor
 
     private var isSyncing = false
     private val CHANNEL_ID = "usage_sync_channel"
@@ -55,6 +58,7 @@ class UsageSyncService : LifecycleService() {
     }
 
     private suspend fun syncUsage() {
+        usageMonitor.checkUsageAndTriggerAlerts()
         val trackedApps = appTimerRepository.getAppLimitsFlow().first()
         if (trackedApps.isEmpty()) return
 
