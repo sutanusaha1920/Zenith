@@ -7,6 +7,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import sutanu.apps.zenith.data.local.db.ZenithDatabase
+import sutanu.apps.zenith.data.local.db.dao.AlertHistoryDao
 import sutanu.apps.zenith.data.local.db.dao.AppLimitDao
 import sutanu.apps.zenith.data.local.db.dao.SosContactsDao
 import javax.inject.Singleton
@@ -29,5 +30,10 @@ object DatabaseModule {
     @Provides
     fun provideSosContactsDao(database: ZenithDatabase): SosContactsDao {
         return database.sosContactsDao()
+    }
+
+    @Provides
+    fun provideAlertHistoryDao(database: ZenithDatabase): AlertHistoryDao {
+        return database.alertHistoryDao()
     }
 }
