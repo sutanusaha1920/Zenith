@@ -1,6 +1,5 @@
 package sutanu.apps.zenith.presentation.screen_timer.app_timer.ui
 
-import android.graphics.drawable.Drawable
 import java.util.Locale
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -50,10 +49,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import sutanu.apps.zenith.R
 import sutanu.apps.zenith.data.local.db.entity.AppLimitEntity
 import sutanu.apps.zenith.domain.model.AppTimer
@@ -67,8 +66,8 @@ import sutanu.apps.zenith.presentation.ui.theme.Poppins
 import sutanu.apps.zenith.presentation.ui.theme.SurfacePrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextPrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
-
 import androidx.compose.ui.tooling.preview.Preview
+import coil.compose.AsyncImage
 import sutanu.apps.zenith.domain.model.AppInfo
 import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
 
@@ -146,10 +145,8 @@ fun AppTimerContent(
                 }
             } else {
                 state.individualLimits.forEach { limit ->
-                    val matchingApp = state.installedAppsList.find { it.packageName == limit.packageName }
                     AppLimitRowItem(
                         limit = limit,
-                        icon = matchingApp?.icon,
                         onDelete = { onDeleteLimit(limit.packageName) }
                     )
                 }
@@ -220,9 +217,9 @@ fun AddAppLimitDialog(
                             .fillMaxWidth()
                             .menuAnchor(),
                         leadingIcon = {
-                            state.selectedAppToLimit?.icon?.let { icon ->
-                                Image(
-                                    painter = rememberDrawablePainter(drawable = icon),
+                            state.selectedAppToLimit?.let { icon ->
+                                AsyncImage(
+                                    model = icon.packageName,
                                     contentDescription = null,
                                     modifier = Modifier
                                         .size(24.dp)
@@ -258,8 +255,8 @@ fun AddAppLimitDialog(
                                 text = {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         if (app.icon != null) {
-                                            Image(
-                                                painter = rememberDrawablePainter(drawable = app.icon),
+                                            AsyncImage(
+                                                model = app.packageName,
                                                 contentDescription = null,
                                                 modifier = Modifier
                                                     .size(28.dp)
@@ -399,7 +396,6 @@ fun AddAppLimitDialog(
 @Composable
 fun AppLimitRowItem(
     limit: AppLimitEntity,
-    icon: Drawable?,
     onDelete: () -> Unit
 ) {
     Row(
@@ -423,19 +419,12 @@ fun AppLimitRowItem(
                     .background(InputBg),
                 contentAlignment = Alignment.Center
             ) {
-                if (icon != null) {
-                    Image(
-                        painter = rememberDrawablePainter(drawable = icon),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize().padding(6.dp)
-                    )
-                } else {
-                    Image(
-                        painter = rememberAsyncImagePainter(model = R.drawable.ic_android_logo),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize().padding(6.dp)
-                    )
-                }
+                AsyncImage(
+                    model = limit.packageName,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize().padding(6.dp),
+                    error = painterResource(R.drawable.ic_android_logo)
+                )
             }
 
             Spacer(modifier = Modifier.width(14.dp))
