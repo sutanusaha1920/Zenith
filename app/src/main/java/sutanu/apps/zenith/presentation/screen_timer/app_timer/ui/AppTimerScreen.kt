@@ -1,5 +1,6 @@
 package sutanu.apps.zenith.presentation.screen_timer.app_timer.ui
 
+import android.graphics.drawable.Drawable
 import java.util.Locale
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -145,8 +146,10 @@ fun AppTimerContent(
                 }
             } else {
                 state.individualLimits.forEach { limit ->
+                    val matchingApp = state.installedAppsList.find { it.packageName == limit.packageName }
                     AppLimitRowItem(
                         limit = limit,
+                        icon = matchingApp?.icon,
                         onDelete = { onDeleteLimit(limit.packageName) }
                     )
                 }
@@ -217,9 +220,9 @@ fun AddAppLimitDialog(
                             .fillMaxWidth()
                             .menuAnchor(),
                         leadingIcon = {
-                            state.selectedAppToLimit?.let { icon ->
+                            state.selectedAppToLimit?.let { app ->
                                 AsyncImage(
-                                    model = icon.packageName,
+                                    model = app.icon,
                                     contentDescription = null,
                                     modifier = Modifier
                                         .size(24.dp)
@@ -256,7 +259,7 @@ fun AddAppLimitDialog(
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         if (app.icon != null) {
                                             AsyncImage(
-                                                model = app.packageName,
+                                                model = app.icon,
                                                 contentDescription = null,
                                                 modifier = Modifier
                                                     .size(28.dp)
@@ -396,6 +399,7 @@ fun AddAppLimitDialog(
 @Composable
 fun AppLimitRowItem(
     limit: AppLimitEntity,
+    icon: Drawable?,
     onDelete: () -> Unit
 ) {
     Row(
@@ -420,7 +424,7 @@ fun AppLimitRowItem(
                 contentAlignment = Alignment.Center
             ) {
                 AsyncImage(
-                    model = limit.packageName,
+                    model = icon,
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize().padding(6.dp),
                     error = painterResource(R.drawable.ic_android_logo)

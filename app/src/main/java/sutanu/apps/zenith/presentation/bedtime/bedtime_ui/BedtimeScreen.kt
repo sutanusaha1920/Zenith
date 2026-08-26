@@ -159,7 +159,7 @@ fun BedtimeContent(
                     Text(
                         text = "Bedtime Mode",
                         color = TextPrimary,
-                        fontSize = 28.sp,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = Poppins
                     )
@@ -167,7 +167,7 @@ fun BedtimeContent(
                     Text(
                         text = "Block device during sleep hours",
                         color = TextSecondary,
-                        fontSize = 16.sp,
+                        fontSize = 14.sp,
                         fontFamily = Poppins,
                         modifier = Modifier.padding(top = 4.dp)
                     )

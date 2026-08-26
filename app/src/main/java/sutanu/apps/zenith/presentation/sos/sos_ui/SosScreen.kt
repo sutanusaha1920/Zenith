@@ -107,7 +107,7 @@ fun SosScreenContent(
                     Text(
                         text = "Location & SOS",
                         color = TextPrimary,
-                        fontSize = 26.sp,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = Poppins
                     )

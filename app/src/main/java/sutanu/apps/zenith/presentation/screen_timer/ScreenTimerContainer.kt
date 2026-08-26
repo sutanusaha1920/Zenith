@@ -106,7 +106,7 @@ fun ScreenTimerContent(
                 Text(
                     text = "Screen Timer",
                     color = TextPrimary,
-                    fontSize = 28.sp,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = Poppins
                 )
@@ -114,7 +114,7 @@ fun ScreenTimerContent(
                 Text(
                     text = "Monitor and limit usage",
                     color = TextSecondary,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     fontFamily = Poppins,
                     modifier = Modifier.padding(top = 4.dp)
                 )
