@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -122,7 +123,7 @@ fun HomeScreenContent(
                                 text = "Overview",
                                 color = TextPrimary,
                                 fontFamily = Poppins,
-                                fontSize = 20.sp,
+                                fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
                             )
 
@@ -202,7 +203,7 @@ fun HomeScreenContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(18.dp))
-                            .background(SurfacePrimary)
+                            .background(SurfaceSecondary)
                             .border(
                                 1.dp,
                                 OuterCardStrokePrimary,
@@ -236,7 +237,7 @@ fun HomeScreenContent(
                                 )
                             }
                             Text(
-                                text = "${state.alerts.size} new",
+                                text = if (state.alerts.isNotEmpty()) "${state.alerts.size} new" else "",
                                 color = TextSecondary,
                                 fontFamily = Poppins,
                                 fontSize = 14.sp
@@ -288,7 +289,7 @@ private fun StatCard(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(SurfacePrimary)
+            .background(SurfaceSecondary)
             .border(
                 if (isAlert)0.5.dp else 1.dp,
                 if (isAlert) AlertPrimary.copy(alpha = 0.5f) else OuterCardStrokePrimary,
@@ -323,6 +324,16 @@ private fun StatCard(
 
 @Composable
 private fun AlertItem(alert: HomeAlert) {
+    val context = LocalContext.current
+    val packageManager = context.packageManager
+
+    val appIcon = remember(alert.packageName) {
+        try {
+            alert.packageName?.let { packageManager.getApplicationIcon(it) }
+        } catch (e: Exception) {
+            null
+        }
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -338,7 +349,7 @@ private fun AlertItem(alert: HomeAlert) {
             contentAlignment = Alignment.Center
         ){
             AsyncImage(
-                model = alert.packageName,
+                model = appIcon,
                 contentDescription = null,
                 modifier = Modifier.fillMaxSize(),
                 placeholder = painterResource(R.drawable.ic_android_logo),
