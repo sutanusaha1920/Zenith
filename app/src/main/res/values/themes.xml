@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
+    <!-- Base application theme. -->
     <style name="Theme.Zenith" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Splash Screen theme -->
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <!-- Background color of the splash screen -->
+        <item name="windowSplashScreenBackground">#162240</item>
+        <!-- Icon that will be shown in the center -->
+        <item name="windowSplashScreenAnimatedIcon">@android:color/transparent</item>
+        <!-- The theme to switch to after the splash screen is finished -->
+        <item name="postSplashScreenTheme">@style/Theme.Zenith</item>
+    </style>
 </resources>
