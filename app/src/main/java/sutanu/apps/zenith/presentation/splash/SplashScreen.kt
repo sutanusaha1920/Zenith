@@ -141,7 +141,7 @@ fun SplashScreen(onNextScreen: () -> Unit) {
     }
 }
 
-@Preview
+@Preview(showBackground = true, device = "id:pixel_7", showSystemUi = true)
 @Composable
 private fun SplashScreenPreview() {
     SplashScreen(onNextScreen = {})
