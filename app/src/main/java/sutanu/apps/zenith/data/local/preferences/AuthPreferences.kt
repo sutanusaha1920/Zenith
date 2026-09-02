@@ -34,6 +34,8 @@ class AuthPreferences @Inject constructor(
         private val KEY_IS_BEDTIME_ENABLED = booleanPreferencesKey("is_bedtime_enabled")
         private val KEY_BEDTIME_START = stringPreferencesKey("bedtime_start_time")
         private val KEY_BEDTIME_END = stringPreferencesKey("bedtime_end_time")
+
+        private val KEY_UNINSTALL_PROTECTION_ENABLED = booleanPreferencesKey("is_uninstall_protection_enabled")
     }
 
     // Stream to observe PIN updates reactively
@@ -91,6 +93,16 @@ class AuthPreferences @Inject constructor(
     suspend fun setDeviceScreenTimeLimit(limit: Float) {
         context.dataStore.edit { preferences ->
             preferences[KEY_DEVICE_SCREEN_TIME_LIMIT] = limit
+        }
+    }
+
+    val isUninstallProtectionEnabled = context.dataStore.data.map { preferences ->
+        preferences[KEY_UNINSTALL_PROTECTION_ENABLED] ?: true
+    }
+
+    suspend fun setUninstallProtectionEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_UNINSTALL_PROTECTION_ENABLED] = enabled
         }
     }
 }
