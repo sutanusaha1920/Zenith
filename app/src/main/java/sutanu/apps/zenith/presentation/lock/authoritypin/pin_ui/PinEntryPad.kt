@@ -1,7 +1,5 @@
 package sutanu.apps.zenith.presentation.lock.authoritypin.pin_ui
 
-import android.R.attr.contentDescription
-import android.R.attr.onClick
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,8 +40,6 @@ import sutanu.apps.zenith.presentation.ui.theme.ControlDark
 import sutanu.apps.zenith.presentation.ui.theme.InfoPrimary
 import sutanu.apps.zenith.presentation.ui.theme.InputBg
 import sutanu.apps.zenith.presentation.ui.theme.Poppins
-import sutanu.apps.zenith.presentation.ui.theme.SurfacePrimary
-import sutanu.apps.zenith.presentation.ui.theme.SurfaceSecondary
 import sutanu.apps.zenith.presentation.ui.theme.TextPrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
 import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
@@ -211,12 +207,16 @@ fun KeyPadCell(
 @Preview(showBackground = true, device = "id:pixel_7", showSystemUi = true)
 @Composable
 private fun PinEntryPadPreview() {
+    val context = LocalContext.current
+    val repository = AuthRepositoryImpl(AuthPreferences(context), context)
     ZenithTheme(darkTheme = true) {
         Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary)) {
-            PinEntryPad(PinViewModel(
-                AuthRepositoryImpl(AuthPreferences(LocalContext.current)),
-                ValidatePinUseCase(AuthRepositoryImpl(AuthPreferences(LocalContext.current)))
-            ))
+            PinEntryPad(
+                PinViewModel(
+                    repository,
+                    ValidatePinUseCase(repository)
+                )
+            )
         }
     }
 }
