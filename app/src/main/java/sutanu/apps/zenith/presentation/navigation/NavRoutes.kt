@@ -14,4 +14,6 @@ object NavRoutes {
     const val MONITOR = "monitor"
 
     const val SETTINGS = "settings"
+
+    const val CHANGE_PIN = "change_pin"
 }
