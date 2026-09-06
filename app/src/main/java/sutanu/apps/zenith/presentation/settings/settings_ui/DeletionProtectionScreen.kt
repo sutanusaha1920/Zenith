@@ -299,7 +299,7 @@ fun DeletionProtectionContent(
 
                     LaunchedEffect(uiState.isPinError) {
                         if (uiState.isPinError) {
-                            val targetOffsets = listOf(-16f, 16f, -12f, 12f, -6f, 6f, 0f)
+                            val targetOffsets = listOf(-6f, 6f, -4f, 4f, -2f, 2f, 0f)
                             for (offset in targetOffsets) {
                                 shakeOffset.animateTo(
                                     targetValue = offset,

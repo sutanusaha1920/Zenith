@@ -1,5 +1,7 @@
 package sutanu.apps.zenith.presentation.lock.authoritypin.pin_ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -11,14 +13,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import sutanu.apps.zenith.R
 import sutanu.apps.zenith.data.local.preferences.AuthPreferences
 import sutanu.apps.zenith.data.repository_impl.AuthRepositoryImpl
@@ -45,8 +51,33 @@ import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
 import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
 
 @Composable
-fun PinEntryPad(viewModel: PinViewModel) {
+fun PinEntryScreen(
+    viewModel: PinViewModel = hiltViewModel(),
+    onPinSuccess: () -> Unit = {},
+    customHeaderSubtitleText: String? = null
+) {
     val state by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(state.isSuccess) {
+        if (state.isSuccess) {
+            onPinSuccess()
+        }
+    }
+
+    // Shake animation for error feedback
+    val shakeOffset = remember { Animatable(0f) }
+
+    LaunchedEffect(state.isError) {
+        if (state.isError) {
+            val targetOffsets = listOf(-6f, 6f, -4f, 4f, -2f, 2f, 0f)
+            for (offset in targetOffsets) {
+                shakeOffset.animateTo(
+                    targetValue = offset,
+                    animationSpec = tween(durationMillis = 30)
+                )
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -64,7 +95,7 @@ fun PinEntryPad(viewModel: PinViewModel) {
         ) {
             Box(
                 modifier = Modifier
-                    .size(120.dp)
+                    .size(100.dp)
                     .clip(RoundedCornerShape(28.dp))
                     .background(Color(0xFF112950)),
                 contentAlignment = Alignment.Center
@@ -72,25 +103,29 @@ fun PinEntryPad(viewModel: PinViewModel) {
                 Image(
                     painter = painterResource(R.drawable.ic_zenith_shield),
                     contentDescription = "Zenith Logo",
-                    modifier = Modifier.size(86.dp)
+                    modifier = Modifier.size(72.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = "Zenith",
                 color = TextPrimary,
-                fontSize = 32.sp,
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = Poppins
             )
 
             Text(
-                text = state.headerSubtitleText,
-                color = TextSecondary,
+                text = if (state.isError && state.errorMessage != null) {
+                    state.errorMessage!!
+                } else {
+                    customHeaderSubtitleText ?: state.headerSubtitleText
+                },
+                color = if (state.isError) AlertPrimary else TextSecondary,
                 fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
                 fontFamily = Poppins,
                 modifier = Modifier.padding(top = 8.dp)
             )
@@ -99,23 +134,41 @@ fun PinEntryPad(viewModel: PinViewModel) {
 
             // 6 digit progress indicator
             Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.offset(x = shakeOffset.value.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 repeat(6) { index ->
                     val isFilled = index < state.enteredPin.length
+                    val digitChar = if (isFilled) state.enteredPin[index].toString() else ""
+
                     Box(
-                        modifier = Modifier
-                            .size(14.dp)
-                            .clip(CircleShape)
-                            .background(
-                                when {
-                                    state.isError -> AlertPrimary
-                                    isFilled -> InfoPrimary
-                                    else -> ControlDark
-                                }
+                        modifier = Modifier.size(20.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (state.isPinVisible && isFilled) {
+                            Text(
+                                text = digitChar,
+                                color = if (state.isError) AlertPrimary.copy(alpha = 0.5f) else InfoPrimary,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                fontFamily = Poppins
                             )
-                    )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(12.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        when {
+                                            state.isError -> AlertPrimary.copy(alpha = 0.5f)
+                                            isFilled -> InfoPrimary
+                                            else -> ControlDark
+                                        }
+                                    )
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -123,7 +176,7 @@ fun PinEntryPad(viewModel: PinViewModel) {
         // Grid panel for PIN
         Column(
             modifier = Modifier.padding(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             val keys = listOf(
                 listOf("1", "2", "3"),
@@ -134,7 +187,7 @@ fun PinEntryPad(viewModel: PinViewModel) {
 
             keys.forEach { row ->
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     row.forEach { key ->
@@ -168,7 +221,7 @@ fun KeyPadCell(
 ) {
     Box(
         modifier = modifier
-            .height(72.dp)
+            .height(58.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(InputBg)
             .clickable { onClick() },
@@ -211,7 +264,7 @@ private fun PinEntryPadPreview() {
     val repository = AuthRepositoryImpl(AuthPreferences(context), context)
     ZenithTheme(darkTheme = true) {
         Box(modifier = Modifier.fillMaxSize().background(BackgroundPrimary)) {
-            PinEntryPad(
+            PinEntryScreen (
                 PinViewModel(
                     repository,
                     ValidatePinUseCase(repository)

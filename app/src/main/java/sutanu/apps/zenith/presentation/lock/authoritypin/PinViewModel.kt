@@ -3,6 +3,7 @@ package sutanu.apps.zenith.presentation.lock.authoritypin
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -40,7 +41,7 @@ class PinViewModel @Inject constructor(
             } else {
                 _uiState.value = _uiState.value.copy(
                     currentStep = PinSetupStep.VALIDATE,
-                    headerSubtitleText = "Enter your PIn to continue"
+                    headerSubtitleText = "Enter your PIN to continue"
                 )
             }
         }
@@ -50,7 +51,11 @@ class PinViewModel @Inject constructor(
         val currentPin = _uiState.value.enteredPin
         if (currentPin.length < 6) {
             val newPin = currentPin + digit
-            _uiState.value = _uiState.value.copy(enteredPin = newPin, isError = false)
+            _uiState.value = _uiState.value.copy(
+                enteredPin = newPin,
+                isError = false,
+                errorMessage = null
+            )
 
             if (newPin.length == 6) {
                 verifyPin(newPin)
@@ -93,15 +98,21 @@ class PinViewModel @Inject constructor(
                         _uiState.value = _uiState.value.copy(isSuccess = true)
                     }
                 } else {
-                    // Restarts matrix state to step one
+                    // Restarts matrix state to step one with error feedback
                     _uiState.value = _uiState.value.copy(
-                        enteredPin = "",
-                        firstTimePinDraft = "",
-                        currentStep = PinSetupStep.CREATE,
-                        headerSubtitleText = "Create a 6-digit PIN",
                         isError = true,
                         errorMessage = "PINs did not match. Restart setup"
                     )
+                    viewModelScope.launch {
+                        delay(800)
+                        _uiState.value = _uiState.value.copy(
+                            enteredPin = "",
+                            firstTimePinDraft = "",
+                            currentStep = PinSetupStep.CREATE,
+                            headerSubtitleText = "Create a 6-digit PIN",
+                            isError = false
+                        )
+                    }
                 }
             }
 
@@ -112,9 +123,13 @@ class PinViewModel @Inject constructor(
                         _uiState.value = _uiState.value.copy(isSuccess = true)
                     } else {
                         _uiState.value = _uiState.value.copy(
-                            enteredPin = "",
                             isError = true,
                             errorMessage = "Incorrect PIN code. Try again"
+                        )
+                        delay(800)
+                        _uiState.value = _uiState.value.copy(
+                            enteredPin = "",
+                            isError = false
                         )
                     }
                 }
