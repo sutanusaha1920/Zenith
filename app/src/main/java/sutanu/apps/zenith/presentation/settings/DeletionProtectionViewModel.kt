@@ -18,6 +18,7 @@ private data class NumpadState(
     val showNumpad: Boolean = false,
     val enteredPin: String = "",
     val isPinError: Boolean = false,
+    val isPinVisible: Boolean = false,
     val errorMessage: String? = null
 )
 
@@ -37,6 +38,7 @@ class DeletionProtectionViewModel @Inject constructor(
             showNumpad = numpad.showNumpad,
             enteredPin = numpad.enteredPin,
             isPinError = numpad.isPinError,
+            isPinVisible = numpad.isPinVisible,
             errorMessage = numpad.errorMessage
         )
     }.stateIn(
@@ -78,6 +80,12 @@ class DeletionProtectionViewModel @Inject constructor(
             enteredPin = currentPin.dropLast(1),
             isPinError = false,
             errorMessage = null
+        )
+    }
+
+    fun onPinVisibilityClicked() {
+        _numpadState.value = _numpadState.value.copy(
+            isPinVisible = !_numpadState.value.isPinVisible
         )
     }
 
