@@ -20,7 +20,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -258,7 +257,7 @@ fun SettingsScreenContent(
                 SettingsItem(
                     icon = {
                         Icon(
-                            imageVector = Icons.Default.Info,
+                            painter = painterResource(R.drawable.ic_alert_circle),
                             contentDescription = null,
                             modifier = Modifier.size(24.dp),
                             tint = InfoPrimary
