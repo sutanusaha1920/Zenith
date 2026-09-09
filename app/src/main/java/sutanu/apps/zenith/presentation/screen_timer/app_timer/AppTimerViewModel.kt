@@ -43,7 +43,17 @@ class AppTimerViewModel @Inject constructor(
     }
 
     fun setAddLimitVisible(visible: Boolean) {
-        _uiState.value = _uiState.value.copy(showAddLimitSection = visible)
+        _uiState.update { current ->
+            if (!visible) {
+                current.copy(
+                    showAddLimitSection = false,
+                    selectedAppToLimit = null,
+                    draftLimitHours = 1.0f
+                )
+            } else {
+                current.copy(showAddLimitSection = true)
+            }
+        }
     }
 
     fun selectApp(app: AppInfo?) {

@@ -17,18 +17,28 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
 import coil.compose.rememberAsyncImagePainter
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
@@ -49,6 +59,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -108,7 +119,7 @@ fun AppTimerContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Individual Configurations",
+                text = "Individual App Screen Limits",
                 color = TextPrimary,
                 fontSize = 16.sp,
                 fontFamily = Poppins,
@@ -128,7 +139,30 @@ fun AppTimerContent(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        //Active app limits list
+        // Inline Add App Limit Section with AnimatedVisibility
+        AnimatedVisibility(
+            visible = state.showAddLimitSection,
+            enter = fadeIn() + expandVertically(),
+            exit = fadeOut() + shrinkVertically()
+        ) {
+            Column {
+                Spacer(modifier = Modifier.height(8.dp))
+                AddAppLimitCard(
+                    state = state,
+                    onSelectApp = onSelectApp,
+                    onUpdateDraftSlider = onUpdateDraftSlider,
+                    onApplyLimit = onApplyLimit,
+                    onCancel = onDismissDialog
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+
+        if (!state.showAddLimitSection) {
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        // Active app limits list
         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
             if (state.individualLimits.isEmpty()) {
                 Box(
@@ -155,108 +189,225 @@ fun AppTimerContent(
                 }
             }
         }
-
-        //Add limit modal dialog box
-        if (state.showAddLimitSection) {
-            AddAppLimitDialog(
-                state = state,
-                onSelectApp = onSelectApp,
-                onUpdateDraftSlider = onUpdateDraftSlider,
-                onApplyLimit = onApplyLimit,
-                onDismiss = onDismissDialog
-            )
-        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddAppLimitDialog(
+fun AddAppLimitCard(
     state: AppTimer,
     onSelectApp: (AppInfo) -> Unit,
     onUpdateDraftSlider: (Float) -> Unit,
     onApplyLimit: () -> Unit,
-    onDismiss: () -> Unit
+    onCancel: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = SurfacePrimary,
-        shape = RoundedCornerShape(20.dp),
-        title = {
-            Text(
-                text = "Add App Limit",
-                color = TextPrimary,
-                fontSize = 18.sp,
-                fontFamily = Poppins,
-                fontWeight = FontWeight.Bold
-            )
-        },
-        text = {
+    val handleCancel = {
+        expanded = false
+        searchQuery = ""
+        onCancel()
+    }
+
+    val filteredApps = remember(state.installedAppsList, searchQuery) {
+        if (searchQuery.isBlank()) {
+            state.installedAppsList
+        } else {
+            state.installedAppsList.filter {
+                it.appName.contains(searchQuery, ignoreCase = true) ||
+                        it.packageName.contains(searchQuery, ignoreCase = true)
+            }
+        }
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, OuterCardStrokePrimary, RoundedCornerShape(20.dp)),
+        colors = CardDefaults.cardColors(containerColor = SurfacePrimary),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Title & Close Button Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Add App Limit",
+                    color = TextPrimary,
+                    fontSize = 18.sp,
+                    fontFamily = Poppins,
+                    fontWeight = FontWeight.Bold
+                )
+
+                IconButton(onClick = handleCancel) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close",
+                        tint = TextSecondary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+
+            // Installed app selection
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                //Installed app selection
                 Text(
                     text = "Select Application",
                     color = TextSecondary,
                     fontSize = 14.sp,
-                    fontFamily = Poppins,
-                    modifier = Modifier.padding(horizontal = 24.dp)
+                    fontFamily = Poppins
                 )
 
-                ExposedDropdownMenuBox(
-                    expanded = expanded,
-                    onExpandedChange = { expanded = !expanded },
-                    modifier = Modifier.padding(horizontal = 24.dp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(InputBg)
+                        .border(
+                            width = 1.dp,
+                            color = if (expanded) InfoPrimary else OuterCardStrokePrimary,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .clickable { expanded = !expanded }
+                        .padding(horizontal = 14.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    OutlinedTextField(
-                        value = state.selectedAppToLimit?.appName ?: "Tap to choose app",
-                        onValueChange = {},
-                        readOnly = true,
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        state.selectedAppToLimit?.let { app ->
+                            AsyncImage(
+                                model = app.icon,
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                            )
+
+                            Spacer(modifier = Modifier.width(12.dp))
+                        }
+
+                        Text(
+                            text = state.selectedAppToLimit?.appName ?: "Tap to choose app",
+                            color = if (state.selectedAppToLimit != null) TextPrimary else TextSecondary,
+                            fontSize = 14.sp,
+                            fontFamily = Poppins
+                        )
+                    }
+
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = "Toggle app selector",
+                        tint = TextSecondary,
+                        modifier = Modifier.rotate(if (expanded) 180f else 0f)
+                    )
+                }
+
+                if (expanded) {
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .menuAnchor(),
-                        leadingIcon = {
-                            state.selectedAppToLimit?.let { app ->
-                                AsyncImage(
-                                    model = app.icon,
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(InputBg)
+                            .border(1.dp, OuterCardStrokePrimary, RoundedCornerShape(12.dp))
+                            .padding(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            placeholder = {
+                                Text(
+                                    text = "Search app...",
+                                    color = TextSecondary,
+                                    fontSize = 14.sp,
+                                    fontFamily = Poppins
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Search,
                                     contentDescription = null,
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .clip(RoundedCornerShape(4.dp))
+                                    tint = TextSecondary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            },
+                            trailingIcon = {
+                                if (searchQuery.isNotEmpty()) {
+                                    IconButton(onClick = { searchQuery = "" }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Clear,
+                                            contentDescription = "Clear search",
+                                            tint = TextSecondary,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
+                                }
+                            },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedTextColor = TextPrimary,
+                                unfocusedTextColor = TextPrimary,
+                                focusedContainerColor = SurfacePrimary,
+                                unfocusedContainerColor = SurfacePrimary,
+                                focusedBorderColor = InfoPrimary,
+                                unfocusedBorderColor = OuterCardStrokePrimary
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+
+                        if (filteredApps.isEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No apps found",
+                                    color = TextSecondary,
+                                    fontSize = 14.sp,
+                                    fontFamily = Poppins
                                 )
                             }
-                        },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(
-                                expanded = expanded
-                            )
-                        },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = TextPrimary,
-                            unfocusedTextColor = TextPrimary,
-                            focusedContainerColor = InputBg,
-                            unfocusedContainerColor = InputBg,
-                            focusedBorderColor = InfoPrimary,
-                            unfocusedBorderColor = OuterCardStrokePrimary
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-
-                    ExposedDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                        modifier = Modifier
-                            .background(InputBg)
-                            .heightIn(max = 220.dp)
-                    ) {
-                        state.installedAppsList.forEach { app ->
-                            DropdownMenuItem(
-                                text = {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        } else {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 200.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                items(
+                                    items = filteredApps,
+                                    key = { it.packageName }
+                                ) { app ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .clickable {
+                                                onSelectApp(app)
+                                                expanded = false
+                                                searchQuery = ""
+                                            }
+                                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
                                         if (app.icon != null) {
                                             AsyncImage(
                                                 model = app.icon,
@@ -270,129 +421,129 @@ fun AddAppLimitDialog(
                                         Text(
                                             text = app.appName,
                                             color = TextPrimary,
-                                            fontSize = 16.sp,
+                                            fontSize = 15.sp,
                                             fontFamily = Poppins,
+                                            fontWeight = if (state.selectedAppToLimit?.packageName == app.packageName) FontWeight.Bold else FontWeight.Normal
                                         )
                                     }
-                                },
-                                onClick = {
-                                    onSelectApp(app)
-                                    expanded = false
                                 }
-                            )
+                            }
                         }
                     }
                 }
-
-                //Time Limit Slider
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Daily Limit",
-                        color = TextPrimary,
-                        fontSize = 14.sp,
-                        fontFamily = Poppins,
-                        fontWeight = FontWeight.SemiBold
-                    )
-
-                    Text(
-                        text = "${"%.1f".format(Locale.US, state.draftLimitHours).replace(".0", "")}h",
-                        color = InfoPrimary,
-                        fontSize = 16.sp,
-                        fontFamily = Poppins,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-
-                Slider(
-                    value = state.draftLimitHours,
-                    onValueChange = onUpdateDraftSlider,
-                    valueRange = 0.5f..6f,
-                    steps = 10,
-                    colors = SliderDefaults.colors(
-                        activeTrackColor = InfoPrimary,
-                        inactiveTrackColor = ControlDark
-                    ),
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    thumb = {
-                        Box(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .background(InfoPrimary, CircleShape)
-                        )
-                    },
-                    track = { sliderState ->
-                        SliderDefaults.Track(
-                            sliderState = sliderState,
-                            modifier = Modifier
-                                .height(12.dp)
-                                .clip(CircleShape)
-                                .border(1.dp, OuterCardStrokePrimary, CircleShape),
-                            colors = SliderDefaults.colors(
-                                activeTrackColor = InfoPrimary,
-                                inactiveTrackColor = ControlDark
-                            ),
-                            thumbTrackGapSize = 0.dp,
-                            drawStopIndicator = { },
-                            drawTick = { _, _ -> }
-                        )
-                    }
-                )
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "0.5h",
-                        color = TextSecondary,
-                        fontSize = 12.sp,
-                        fontFamily = Poppins
-                    )
-
-                    Text(
-                        text = "6h",
-                        color = TextSecondary,
-                        fontSize = 12.sp,
-                        fontFamily = Poppins
-                    )
-                }
             }
-        },
-        confirmButton = {
-            Button(
-                onClick = onApplyLimit,
-                enabled = state.selectedAppToLimit != null,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = InfoPrimary,
-                    disabledContainerColor = ControlDark
-                ),
-                shape = RoundedCornerShape(12.dp)
+
+            // Time Limit Slider
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Apply Limit",
+                    text = "Daily Limit",
                     color = TextPrimary,
+                    fontSize = 14.sp,
+                    fontFamily = Poppins,
+                    fontWeight = FontWeight.SemiBold
+                )
+
+                Text(
+                    text = "${"%.1f".format(Locale.US, state.draftLimitHours).replace(".0", "")}h",
+                    color = InfoPrimary,
+                    fontSize = 16.sp,
+                    fontFamily = Poppins,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Slider(
+                value = state.draftLimitHours,
+                onValueChange = onUpdateDraftSlider,
+                valueRange = 0.5f..6f,
+                steps = 10,
+                colors = SliderDefaults.colors(
+                    activeTrackColor = InfoPrimary,
+                    inactiveTrackColor = ControlDark
+                ),
+                modifier = Modifier.fillMaxWidth(),
+                thumb = {
+                    Box(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .background(InfoPrimary, CircleShape)
+                    )
+                },
+                track = { sliderState ->
+                    SliderDefaults.Track(
+                        sliderState = sliderState,
+                        modifier = Modifier
+                            .height(12.dp)
+                            .clip(CircleShape)
+                            .border(1.dp, OuterCardStrokePrimary, CircleShape),
+                        colors = SliderDefaults.colors(
+                            activeTrackColor = InfoPrimary,
+                            inactiveTrackColor = ControlDark
+                        ),
+                        thumbTrackGapSize = 0.dp,
+                        drawStopIndicator = { },
+                        drawTick = { _, _ -> }
+                    )
+                }
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "0.5h",
+                    color = TextSecondary,
+                    fontSize = 12.sp,
+                    fontFamily = Poppins
+                )
+
+                Text(
+                    text = "6h",
+                    color = TextSecondary,
+                    fontSize = 12.sp,
                     fontFamily = Poppins
                 )
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(
-                    text = "Cancel",
-                    color = TextSecondary,
-                    fontFamily = Poppins
-                )
+
+            // Action Buttons Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(onClick = handleCancel) {
+                    Text(
+                        text = "Cancel",
+                        color = TextSecondary,
+                        fontFamily = Poppins
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = onApplyLimit,
+                    enabled = state.selectedAppToLimit != null,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = InfoPrimary,
+                        disabledContainerColor = ControlDark
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text(
+                        text = "Apply Limit",
+                        color = TextPrimary,
+                        fontFamily = Poppins
+                    )
+                }
             }
         }
-    )
+    }
 }
 
 
