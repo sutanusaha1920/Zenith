@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import sutanu.apps.zenith.data.local.db.dao.AppLimitDao
+import sutanu.apps.zenith.domain.repository.UsageStatsRepository
 import sutanu.apps.zenith.presentation.lock.overlay.LockScreenOverlayActivity
 import javax.inject.Inject
 
@@ -22,7 +23,8 @@ class AccessibilityMonitor : AccessibilityService() {
 
     @Inject
     lateinit var appLimitDao: AppLimitDao
-
+    @Inject
+    lateinit var usageStatsRepository: UsageStatsRepository
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
@@ -76,12 +78,14 @@ class AccessibilityMonitor : AccessibilityService() {
             if (appLimitRecord != null) {
 
                 val isHardBlocked = appLimitRecord.isBlockedText
-                val isTimeLimitExceeded = appLimitRecord.dailyLimitMinutes > 0 && 
-                                         appLimitRecord.dailyMinutesUsed >= appLimitRecord.dailyLimitMinutes
+
+                val liveUsageMinutes = usageStatsRepository.getAppsUsageMinutes(listOf(packageName))[packageName] ?: 0
+
+                val isTimeLimitExceeded = appLimitRecord.dailyLimitMinutes in 1..liveUsageMinutes
 
                 if (isHardBlocked || isTimeLimitExceeded) {
                     launch(Dispatchers.Main) {
-                        Log.w("ZenithSecurity", "Enforcing barrier on $packageName. TimeUsed: ${appLimitRecord.dailyMinutesUsed}, Limit: ${appLimitRecord.dailyLimitMinutes}")
+                        Log.w("ZenithSecurity", "Enforcing barrier on $packageName. Live Usage: $liveUsageMinutes, Limit: ${appLimitRecord.dailyLimitMinutes}")
                         launchBlockingOverlay(packageName, appLimitRecord.appName)
                     }
                 }

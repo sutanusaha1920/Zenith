@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
 import sutanu.apps.zenith.R
 import sutanu.apps.zenith.domain.monitor.UsageMonitor
 import sutanu.apps.zenith.domain.repository.AppTimerRepository
+import sutanu.apps.zenith.domain.repository.DeviceTimerRepository
 import sutanu.apps.zenith.domain.repository.UsageStatsRepository
 import javax.inject.Inject
 
@@ -27,7 +28,7 @@ class UsageSyncService : LifecycleService() {
 
     @Inject lateinit var appTimerRepository: AppTimerRepository
     @Inject lateinit var usageStatsRepository: UsageStatsRepository
-
+    @Inject lateinit var deviceTimerRepository: DeviceTimerRepository
     @Inject lateinit var usageMonitor: UsageMonitor
 
     private var isSyncing = false
@@ -59,6 +60,22 @@ class UsageSyncService : LifecycleService() {
 
     private suspend fun syncUsage() {
         usageMonitor.checkUsageAndTriggerAlerts()
+
+        val isTimerEnabled = deviceTimerRepository.isTimerEnabledFlow.first()
+
+        if (isTimerEnabled) {
+            val deviceLimitHours = deviceTimerRepository.deviceLimitFlow.first()
+            val totalTimeUsedMinutes = usageStatsRepository.getTodayTotalUsageMinutes().first()
+            val deviceLimitMinutes = (deviceLimitHours * 60).toInt()
+
+            if (deviceLimitMinutes in 1..totalTimeUsedMinutes) {
+                Log.d("ZenithSync", "Device Limit Hit: $totalTimeUsedMinutes / $deviceLimitMinutes mins")
+                val foregroundApp = usageStatsRepository.getForegroundApp() ?: packageName
+                launchBlockingOverlay(foregroundApp, "Device")
+                return
+            }
+        }
+
         val trackedApps = appTimerRepository.getAppLimitsFlow().first()
         if (trackedApps.isEmpty()) return
 
