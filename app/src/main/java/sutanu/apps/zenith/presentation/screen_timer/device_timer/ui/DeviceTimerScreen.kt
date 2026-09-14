@@ -24,21 +24,25 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import sutanu.apps.zenith.presentation.screen_timer.device_timer.DeviceTimerViewModel
@@ -50,6 +54,9 @@ import sutanu.apps.zenith.presentation.ui.theme.SurfacePrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextPrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import sutanu.apps.zenith.R
 import sutanu.apps.zenith.domain.model.DeviceTimer
 import sutanu.apps.zenith.presentation.ui.theme.OuterCardStrokePrimary
@@ -58,6 +65,20 @@ import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
 
 @Composable
 fun DeviceTimerScreen(viewModel: DeviceTimerViewModel) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshPermissions()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
     val state by viewModel.uiState.collectAsState()
     DeviceTimerContent(
         state = state,
@@ -98,14 +119,33 @@ fun DeviceTimerContent(
             .background(SurfacePrimary)
             .padding(start = 16.dp, end = 16.dp)
     ) {
+        if (state.needsAccessibilityPermission) {
+            Spacer(modifier = Modifier.height(16.dp))
+            PermissionPrompt(
+                title = "Accessibility Permission Required",
+                description = "To block restricted apps and enforce timers, please enable Zenith in Accessibility settings.",
+                onGrantClick = {
+                    val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
+                    context.startActivity(intent)
+                }
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+
         if (state.needsUsagePermission) {
             Spacer(modifier = Modifier.height(16.dp))
-            PermissionPrompt(onGrantClick = {
-                val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
-                    data = Uri.fromParts("package", context.packageName, null)
+            PermissionPrompt(
+                title = "Usage Access Required",
+                description = "To show your screen time accurately, Zenith needs usage access permission.",
+                onGrantClick = {
+                    val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS).apply {
+                        data = Uri.fromParts("package", context.packageName, null)
+                    }
+                    context.startActivity(intent)
                 }
-                context.startActivity(intent)
-            })
+            )
             Spacer(modifier = Modifier.height(16.dp))
         }
 
@@ -309,7 +349,11 @@ fun DeviceTimerPreview() {
 }
 
 @Composable
-fun PermissionPrompt(onGrantClick: () -> Unit) {
+fun PermissionPrompt(
+    title: String = "Usage Access Required",
+    description: String = "To show your screen time accurately, Zenith needs usage access permission.",
+    onGrantClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -326,29 +370,30 @@ fun PermissionPrompt(onGrantClick: () -> Unit) {
         )
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "Usage Access Required",
+            text = title,
             color = AlertPrimary,
-            fontSize = 18.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            fontFamily = Poppins
+            fontFamily = Poppins,
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = "To show your screen time accurately, Zenith needs usage access permission.",
+            text = description,
             color = TextSecondary,
             fontSize = 14.sp,
             fontFamily = Poppins,
-            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
             onClick = onGrantClick,
-            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+            colors = ButtonDefaults.buttonColors(
                 containerColor = AlertPrimary
             ),
             shape = RoundedCornerShape(12.dp)
         ) {
-            Text("Grant Access", color = androidx.compose.ui.graphics.Color.White)
+            Text("Grant Access", color = Color.White)
         }
     }
 }

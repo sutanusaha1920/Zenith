@@ -41,10 +41,11 @@ class UsageStatsRepositoryImpl @Inject constructor(
                 val totalTimeMs = stats?.filter { it.firstTimeStamp >= startTime }
                     ?.sumOf { it.totalTimeInForeground } ?: 0L
                 emit((totalTimeMs / 1000 / 60).toInt())
+                delay(30000) // Poll every 30 seconds when permission is granted
             } else {
                 emit(0)
+                delay(1000) // Poll every 1 second when permission is missing so it detects grants instantly
             }
-            delay(30000) // Update every 30 seconds
         }
     }
 

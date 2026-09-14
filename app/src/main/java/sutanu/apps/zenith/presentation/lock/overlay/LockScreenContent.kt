@@ -113,7 +113,7 @@ fun LockScreenContent(
                 shape = RoundedCornerShape(20.dp)
             ) {
                 Text(
-                    text = "Override with PIN",
+                    text = "Unlock with PIN",
                     color = TextPrimary,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
