@@ -48,6 +48,7 @@ import sutanu.apps.zenith.domain.model.AppTimer
 import sutanu.apps.zenith.domain.model.DeviceTimer
 import sutanu.apps.zenith.presentation.screen_timer.app_timer.ui.AppTimerContent
 import sutanu.apps.zenith.presentation.screen_timer.device_timer.ui.DeviceTimerContent
+import sutanu.apps.zenith.presentation.ui.theme.BackgroundPrimary
 import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
 
 @Composable
@@ -90,7 +91,7 @@ fun ScreenTimerContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(SurfacePrimary)
+            .background(BackgroundPrimary)
             .padding(horizontal = 16.dp)
             .verticalScroll(rememberScrollState())
     ) {
@@ -140,7 +141,7 @@ fun ScreenTimerContent(
                 .fillMaxWidth()
                 .height(48.dp)
                 .clip(RoundedCornerShape(14.dp))
-                .background(SurfacePrimary)
+                .background(BackgroundPrimary)
                 .padding(4.dp)
         ) {
             Box(

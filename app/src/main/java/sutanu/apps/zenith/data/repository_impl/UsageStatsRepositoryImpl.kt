@@ -116,9 +116,7 @@ class UsageStatsRepositoryImpl @Inject constructor(
                 set(Calendar.MILLISECOND, 0)
             }
             val dayStart = cal.timeInMillis
-
             val dayEnd = if (i == 0) System.currentTimeMillis() else dayStart + 86_400_000L - 1L
-
             val dayLabel = dayLabelFormat.format(cal.time)
 
             val stats = usageStatsManager.queryUsageStats(
@@ -127,16 +125,16 @@ class UsageStatsRepositoryImpl @Inject constructor(
                 dayEnd
             )
 
-            val totalTimeMs = stats?.filter { it.firstTimeStamp >= dayStart - 3_600_000L }
+            val totalTimeMs = stats
+                ?.filter { it.firstTimeStamp >= dayStart }
                 ?.sumOf { it.totalTimeInForeground } ?: 0L
-
             val totalMinutes = (totalTimeMs / 1000 / 60).toInt()
 
             dayPairs.add(dayLabel to totalMinutes)
         }
 
         return dayPairs
-        }
+    }
 
     override suspend fun getRecentAppLaunches(): List<RawAppLaunch> {
         val calendar = Calendar.getInstance().apply {
@@ -148,39 +146,30 @@ class UsageStatsRepositoryImpl @Inject constructor(
         val startTimeToday = calendar.timeInMillis
         val endTimeNow = System.currentTimeMillis()
 
-        val lastLaunchMap = mutableMapOf<String, Long>()
-        val events = usageStatsManager.queryEvents(startTimeToday, endTimeNow)
-        val event = UsageEvents.Event()
+        val statsList = usageStatsManager.queryUsageStats(
+            UsageStatsManager.INTERVAL_DAILY,
+            startTimeToday,
+            endTimeNow
+        ) ?: emptyList()
 
-        while (events.hasNextEvent()) {
-            events.getNextEvent(event)
-            if (event.eventType == UsageEvents.Event.ACTIVITY_RESUMED) {
-                val pkg = event.packageName
-                if (!pkg.isNullOrEmpty()) {
-                    lastLaunchMap[pkg] = event.timeStamp
-                }
-            }
-        }
-
-        val usageStatsMap = usageStatsManager.queryAndAggregateUsageStats(startTimeToday, endTimeNow)
-
-        return lastLaunchMap.entries
+        return statsList
             .asSequence()
-            .filter { (pkg, _) ->
-                pkg != context.packageName && !pkg.contains("launcher")
+            .filter { stats ->
+                val pkg = stats.packageName ?: ""
+                pkg != context.packageName &&
+                        !pkg.contains("launcher") &&
+                        stats.lastTimeUsed >= startTimeToday &&
+                        stats.totalTimeInForeground > 0
             }
-            .map { (pkg, lastTimeMs) ->
-                val usageMs = usageStatsMap[pkg]?.totalTimeInForeground ?: 0L
-                val totalMinutes = (usageMs / 1000 / 60).toInt()
-
+            .sortedByDescending { it.lastTimeUsed }
+            .take(10)
+            .map { stats ->
                 RawAppLaunch(
-                    packageName = pkg,
-                    lastTimeUsedMs = lastTimeMs,
-                    totalUsageMinutesToday = totalMinutes
+                    packageName = stats.packageName,
+                    lastTimeUsedMs = stats.lastTimeUsed,
+                    totalUsageMinutesToday = (stats.totalTimeInForeground / 1000 / 60).toInt()
                 )
             }
-            .sortedByDescending { it.lastTimeUsedMs }
-            .take(10)
             .toList()
     }
 }

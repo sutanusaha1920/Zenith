@@ -59,6 +59,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import sutanu.apps.zenith.R
 import sutanu.apps.zenith.domain.model.DeviceTimer
+import sutanu.apps.zenith.presentation.ui.theme.BackgroundPrimary
 import sutanu.apps.zenith.presentation.ui.theme.OuterCardStrokePrimary
 import sutanu.apps.zenith.presentation.ui.theme.SurfaceSecondary
 import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
@@ -116,7 +117,7 @@ fun DeviceTimerContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(SurfacePrimary)
+            .background(BackgroundPrimary)
             .padding(start = 16.dp, end = 16.dp)
     ) {
         if (state.needsAccessibilityPermission) {

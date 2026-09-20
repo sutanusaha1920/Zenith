@@ -46,7 +46,9 @@ kotlin {
 
 
 dependencies {
+    implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.lifecycle.service)
+    implementation(libs.androidx.material3)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
@@ -60,6 +62,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.compose.ui.google.fonts)
     implementation(libs.play.services.location)
     implementation(libs.coil.compose)
