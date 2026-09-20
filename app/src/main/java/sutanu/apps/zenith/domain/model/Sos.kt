@@ -5,6 +5,9 @@ import sutanu.apps.zenith.data.local.db.entity.SosContactEntity
 data class Sos(
     val lastKnownLocation: String = "",
     val gpsAccuracy: String = "",
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val isLoadingLocation: Boolean = true,
     val trustedContacts: List<SosContactEntity> = emptyList(),
     val isSendingAlert: Boolean = false,
     val showAddContactDialog: Boolean = false,

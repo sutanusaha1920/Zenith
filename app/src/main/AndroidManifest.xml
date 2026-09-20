@@ -6,6 +6,8 @@
         android:name="android.hardware.telephony"
         android:required="false" />
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
@@ -17,6 +19,9 @@
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SHORT_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
@@ -83,6 +88,7 @@
 
         <service
             android:name=".data.services.EmergencySosService"
+            android:foregroundServiceType="shortService"
             android:exported="false" />
 
         <service android:name=".data.services.AccessibilityMonitor"
@@ -98,8 +104,12 @@
 
         <service
             android:name=".data.services.UsageSyncService"
-            android:foregroundServiceType="dataSync"
-            android:exported="false"/>
+            android:foregroundServiceType="specialUse"
+            android:exported="false">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="App usage and device limit monitor" />
+        </service>
     </application>
 
 </manifest>

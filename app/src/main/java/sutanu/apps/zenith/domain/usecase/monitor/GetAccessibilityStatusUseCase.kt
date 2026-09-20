@@ -12,6 +12,16 @@ class GetAccessibilityStatusUseCase @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
     operator fun invoke(): Boolean {
+        val accessibilityEnabled = try {
+            Settings.Secure.getInt(
+                context.contentResolver,
+                Settings.Secure.ACCESSIBILITY_ENABLED
+            ) == 1
+        } catch (_: Exception) {
+            false
+        }
+        if (!accessibilityEnabled) return false
+
         val expectedComponentName = ComponentName(context, AccessibilityMonitor::class.java)
 
         val enabledServices = Settings.Secure.getString(
@@ -19,13 +29,16 @@ class GetAccessibilityStatusUseCase @Inject constructor(
             Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
         ) ?: return false
 
-        val spitter = TextUtils.SimpleStringSplitter(':')
-        spitter.setString(enabledServices)
+        val splitter = TextUtils.SimpleStringSplitter(':')
+        splitter.setString(enabledServices)
 
-        while (spitter.hasNext()) {
-            val componentString = spitter.next()
+        while (splitter.hasNext()) {
+            val componentString = splitter.next()
             val enabledComponent = ComponentName.unflattenFromString(componentString)
-            if (enabledComponent != null && enabledComponent == expectedComponentName) {
+            if (enabledComponent != null &&
+                enabledComponent.packageName == context.packageName &&
+                enabledComponent.className == expectedComponentName.className
+            ) {
                 return true
             }
         }

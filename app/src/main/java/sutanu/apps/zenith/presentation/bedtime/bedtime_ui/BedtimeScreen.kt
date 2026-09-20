@@ -515,8 +515,8 @@ fun BedtimeContent(
                         painter = painterResource(id = R.drawable.ic_zenith_shield),
                         contentDescription = "info",
                         modifier = Modifier
-                            .size(15.dp)
-                            .padding(end = 12.dp, top = 2.dp)
+                            .size(30.dp)
+                            .padding(end = 12.dp)
                     )
                     Text(
                         text = "During bedtime, all apps and device usage are blocked. Only selected exceptions above remain accessible.",

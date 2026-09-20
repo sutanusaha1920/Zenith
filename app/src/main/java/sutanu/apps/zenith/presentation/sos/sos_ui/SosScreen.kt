@@ -1,5 +1,19 @@
 package sutanu.apps.zenith.presentation.sos.sos_ui
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.net.Uri
+import android.view.ViewGroup
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,7 +33,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
@@ -33,6 +49,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -46,16 +63,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import android.Manifest
-import android.content.pm.PackageManager
-import android.widget.Toast
 import sutanu.apps.zenith.R
 import sutanu.apps.zenith.data.local.db.entity.SosContactEntity
 import sutanu.apps.zenith.domain.model.Sos
@@ -72,6 +86,13 @@ import sutanu.apps.zenith.presentation.ui.theme.SurfaceSecondary
 import sutanu.apps.zenith.presentation.ui.theme.TextPrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
 
+fun isNetworkAvailable(context: Context): Boolean {
+    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
+    val activeNetwork = connectivityManager.activeNetwork ?: return false
+    val capabilities = connectivityManager.getNetworkCapabilities(activeNetwork) ?: return false
+    return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SosScreen(viewModel: SosViewModel) {
@@ -82,6 +103,13 @@ fun SosScreen(viewModel: SosViewModel) {
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val smsGranted = permissions[Manifest.permission.SEND_SMS] ?: false
+        val fineLocationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        val coarseLocationGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
+
+        if (fineLocationGranted || coarseLocationGranted) {
+            viewModel.fetchRealTimeLocation(context)
+        }
+
         if (smsGranted) {
             viewModel.triggerEmergencySos(context)
         } else {
@@ -93,12 +121,53 @@ fun SosScreen(viewModel: SosViewModel) {
         }
     }
 
+    LaunchedEffect(Unit) {
+        val hasFine = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        val hasCoarse = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasFine || hasCoarse) {
+            viewModel.fetchRealTimeLocation(context)
+        } else {
+            permissionLauncher.launch(
+                arrayOf(
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                )
+            )
+        }
+    }
+
     SosScreenContent(
         state = state,
         onAddContactClick = { viewModel.showAddContactModal() },
         onDeleteContactClick = { viewModel.removeContact(it) },
         onAddContactConfirm = { name, phone -> viewModel.addNewContact(name, phone) },
         onDismissModal = { viewModel.dismissAddContactModal() },
+        onOpenMapClick = {
+            if (state.latitude != null && state.longitude != null) {
+                val uri = Uri.parse("geo:${state.latitude},${state.longitude}?q=${state.latitude},${state.longitude}(My+Location)")
+                val mapIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+                    setPackage("com.google.android.apps.maps")
+                }
+                try {
+                    context.startActivity(mapIntent)
+                } catch (_: Exception) {
+                    val browserIntent = Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse("https://www.google.com/maps/search/?api=1&query=${state.latitude},${state.longitude}")
+                    )
+                    context.startActivity(browserIntent)
+                }
+            } else {
+                viewModel.fetchRealTimeLocation(context)
+            }
+        },
         onTriggerSos = {
             val hasSmsPermission = ContextCompat.checkSelfPermission(
                 context,
@@ -133,9 +202,12 @@ fun SosScreenContent(
     onDeleteContactClick: (SosContactEntity) -> Unit,
     onAddContactConfirm: (String, String) -> Unit,
     onDismissModal: () -> Unit,
+    onOpenMapClick: () -> Unit = {},
     onTriggerSos: () -> Unit = {}
 ) {
     val sheetState = rememberModalBottomSheetState()
+    val context = LocalContext.current
+    val isOnline = remember(context) { isNetworkAvailable(context) }
 
     Box(
         modifier = Modifier
@@ -171,12 +243,12 @@ fun SosScreenContent(
                 }
             }
 
-            // Grid Map
+            // Embedded Google Maps / Offline GPS Grid Card
             item {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(220.dp)
+                        .height(230.dp)
                         .clip(RoundedCornerShape(20.dp))
                         .background(SurfacePrimary)
                         .border(
@@ -184,21 +256,53 @@ fun SosScreenContent(
                             OuterCardStrokePrimary,
                             RoundedCornerShape(20.dp)
                         )
+                        .clickable { onOpenMapClick() }
                 ) {
-                    Column(modifier = Modifier.fillMaxSize()) {
-                        repeat(4) {
-                            Spacer(modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth()
-                                .border(0.5.dp, ControlDark))
+                    if (isOnline) {
+                        // Embedded Real-Time Google Maps when online
+                        GoogleMapEmbeddedView(
+                            latitude = state.latitude,
+                            longitude = state.longitude,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        // Offline Grid Radar View when offline
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                repeat(4) {
+                                    Spacer(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .fillMaxWidth()
+                                            .border(0.5.dp, ControlDark)
+                                    )
+                                }
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .size(54.dp)
+                                    .clip(CircleShape)
+                                    .background(InfoPrimary.copy(alpha = 0.22f))
+                                    .align(Alignment.Center),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.LocationOn,
+                                    contentDescription = "Offline Location Marker",
+                                    tint = InfoPrimary,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
                         }
                     }
 
+                    // Live / Offline Status Badge (Top Left)
                     Row(
                         modifier = Modifier
                             .padding(12.dp)
                             .clip(RoundedCornerShape(8.dp))
-                            .background(InputBg)
+                            .background(SurfacePrimary.copy(alpha = 0.92f))
                             .padding(horizontal = 10.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -206,13 +310,13 @@ fun SosScreenContent(
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
-                                .background(InfoPrimary)
+                                .background(if (isOnline) InfoPrimary else AlertPrimary)
                         )
 
                         Spacer(modifier = Modifier.width(6.dp))
 
                         Text(
-                            text = "Live",
+                            text = if (isOnline) "Live Google Map" else "Offline GPS Active",
                             color = TextPrimary,
                             fontSize = 12.sp,
                             fontFamily = Poppins,
@@ -220,27 +324,47 @@ fun SosScreenContent(
                         )
                     }
 
-                    // Live Icon
-                    Box(
+                    // Open in External Google Maps Chip (Top Right)
+                    Row(
                         modifier = Modifier
-                            .size(48.dp)
-                            .clip(CircleShape)
-                            .background(InfoPrimary.copy(alpha = 0.2f))
-                            .align(Alignment.Center),
-                        contentAlignment = Alignment.Center
+                            .align(Alignment.TopEnd)
+                            .padding(12.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(SurfacePrimary.copy(alpha = 0.92f))
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                            .clickable { onOpenMapClick() },
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.LocationOn, contentDescription = "Location", tint = InfoPrimary, modifier = Modifier.size(24.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                            contentDescription = "Open in Maps",
+                            tint = InfoPrimary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Maps",
+                            color = InfoPrimary,
+                            fontSize = 12.sp,
+                            fontFamily = Poppins,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
 
-                    // Location text and accuracy
+                    // Location Address & GPS Accuracy Details (Bottom Overlay Bar)
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .align(Alignment.BottomStart)
-                            .background(SurfacePrimary.copy(alpha = 0.85f))
+                            .background(SurfacePrimary.copy(alpha = 0.94f))
                             .padding(12.dp)
                     ) {
-                        val locationText = if (state.lastKnownLocation.isEmpty()) "Searching for location..." else state.lastKnownLocation
+                        val locationText = when {
+                            state.isLoadingLocation -> "Fetching live GPS position..."
+                            state.lastKnownLocation.isNotBlank() -> state.lastKnownLocation
+                            else -> "Searching for location..."
+                        }
+
                         Text(
                             text = locationText,
                             color = TextPrimary,
@@ -250,7 +374,7 @@ fun SosScreenContent(
                         )
 
                         Text(
-                            text = state.gpsAccuracy,
+                            text = if (state.gpsAccuracy.isNotBlank()) state.gpsAccuracy else "Tap to open full Google Maps",
                             color = TextSecondary,
                             fontSize = 12.sp,
                             fontFamily = Poppins,
@@ -399,6 +523,54 @@ fun SosScreenContent(
     }
 }
 
+@SuppressLint("SetJavaScriptEnabled")
+@Composable
+fun GoogleMapEmbeddedView(
+    latitude: Double?,
+    longitude: Double?,
+    modifier: Modifier = Modifier
+) {
+    val lat = latitude ?: 23.5350
+    val lng = longitude ?: 87.3200
+
+    val htmlContent = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #0d1527; }
+                iframe { width: 100%; height: 100%; border: 0; }
+            </style>
+        </head>
+        <body>
+            <iframe src="https://maps.google.com/maps?q=$lat,$lng&z=15&output=embed" allowfullscreen></iframe>
+        </body>
+        </html>
+    """.trimIndent()
+
+    AndroidView(
+        factory = { ctx ->
+            WebView(ctx).apply {
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+                settings.javaScriptEnabled = true
+                settings.domStorageEnabled = true
+                settings.loadWithOverviewMode = true
+                settings.useWideViewPort = true
+                webViewClient = WebViewClient()
+                loadDataWithBaseURL("https://maps.google.com", htmlContent, "text/html", "UTF-8", null)
+            }
+        },
+        update = { webView ->
+            webView.loadDataWithBaseURL("https://maps.google.com", htmlContent, "text/html", "UTF-8", null)
+        },
+        modifier = modifier
+    )
+}
+
 @Composable
 fun ContactItemRow(contact: SosContactEntity, onDeleteClick: () -> Unit) {
     Row(
@@ -508,6 +680,7 @@ fun AddContactBottomSheetContent(
             label = { Text("Phone Number") },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(14.dp),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedTextColor = TextPrimary,
                 unfocusedTextColor = TextSecondary,
@@ -566,7 +739,10 @@ fun SosScreenPreview() {
     SosScreenContent(
         state = Sos(
             lastKnownLocation = "123, Salt Lake City, Sector V, Kolkata",
-            gpsAccuracy = "Within 12 meters",
+            gpsAccuracy = "Accurate to within 12m",
+            latitude = 22.5726,
+            longitude = 88.3639,
+            isLoadingLocation = false,
             trustedContacts = listOf(
                 SosContactEntity(id = 1, contactName = "Mom", phoneNumber = "+91 9876543210"),
                 SosContactEntity(id = 2, contactName = "Dad", phoneNumber = "+91 9876543211")
@@ -576,6 +752,7 @@ fun SosScreenPreview() {
         onDeleteContactClick = {},
         onAddContactConfirm = { _, _ -> },
         onDismissModal = {},
+        onOpenMapClick = {},
         onTriggerSos = {}
     )
 }
@@ -590,7 +767,3 @@ fun AddContactBottomSheetPreview() {
         )
     }
 }
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun rememberModalSheetState() = rememberModalBottomSheetState()

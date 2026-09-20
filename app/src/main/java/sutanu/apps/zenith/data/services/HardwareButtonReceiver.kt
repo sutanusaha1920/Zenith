@@ -7,6 +7,8 @@ import android.os.SystemClock
 import android.util.Log
 import kotlin.jvm.java
 
+import androidx.core.content.ContextCompat
+
 class HardwareButtonReceiver : BroadcastReceiver() {
 
     companion object{
@@ -42,6 +44,6 @@ class HardwareButtonReceiver : BroadcastReceiver() {
 
     private fun triggerEmergencyService(context: Context) {
         val serviceIntent = Intent(context, EmergencySosService::class.java)
-        context.startService(serviceIntent)
+        ContextCompat.startForegroundService(context, serviceIntent)
     }
 }

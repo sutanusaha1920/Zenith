@@ -19,7 +19,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,6 +32,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import sutanu.apps.zenith.presentation.navigation.TimerTab
 import sutanu.apps.zenith.presentation.screen_timer.app_timer.AppTimerViewModel
 import sutanu.apps.zenith.presentation.screen_timer.device_timer.DeviceTimerViewModel
@@ -56,8 +60,22 @@ fun ScreenTimerContainer(
     deviceTimerViewModel: DeviceTimerViewModel = hiltViewModel(),
     appTimerViewModel: AppTimerViewModel = hiltViewModel()
 ) {
-    val deviceState by deviceTimerViewModel.uiState.collectAsState()
-    val appState by appTimerViewModel.uiState.collectAsState()
+    val lifecycleOwner = LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                deviceTimerViewModel.refreshPermissions()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    val deviceState by deviceTimerViewModel.uiState.collectAsStateWithLifecycle()
+    val appState by appTimerViewModel.uiState.collectAsStateWithLifecycle()
 
     ScreenTimerContent(
         deviceState = deviceState,

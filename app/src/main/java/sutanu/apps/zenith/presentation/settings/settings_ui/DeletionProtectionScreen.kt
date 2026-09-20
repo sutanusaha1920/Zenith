@@ -309,7 +309,7 @@ fun DeletionProtectionContent(
                         }
                     }
 
-                    // Dot Indicators
+                    // PIN Indicators
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -322,19 +322,35 @@ fun DeletionProtectionContent(
                         ) {
                             repeat(6) { index ->
                                 val isFilled = index < uiState.enteredPin.length
+                                val digitChar = if (isFilled) uiState.enteredPin[index].toString() else ""
 
                                 Box(
-                                    modifier = Modifier
-                                        .size(12.dp)
-                                        .clip(CircleShape)
-                                        .background(
-                                            when {
-                                                uiState.isPinError -> AlertPrimary
-                                                isFilled -> InfoPrimary
-                                                else -> SurfaceSecondary
-                                            }
+                                    modifier = Modifier.size(20.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (uiState.isPinVisible && isFilled) {
+                                        Text(
+                                            text = digitChar,
+                                            color = if (uiState.isPinError) AlertPrimary else InfoPrimary,
+                                            fontSize = 20.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            fontFamily = Poppins
                                         )
-                                )
+                                    } else {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(12.dp)
+                                                .clip(CircleShape)
+                                                .background(
+                                                    when {
+                                                        uiState.isPinError -> AlertPrimary
+                                                        isFilled -> InfoPrimary
+                                                        else -> SurfaceSecondary
+                                                    }
+                                                )
+                                        )
+                                    }
+                                }
                             }
                         }
 
