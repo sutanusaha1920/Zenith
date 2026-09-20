@@ -77,7 +77,10 @@ fun BedtimeScreen(
     BedtimeContent(
         state = state,
         onToggleBedtimeMode = { viewModel.toggleBedtimeMode(it) },
-        onUpdateTime = { start, end -> viewModel.updateScheduleWindow(start, end) }
+        onUpdateTime = { start, end -> viewModel.updateScheduleWindow(start, end) },
+        onToggleAllowCalls = { viewModel.toggleAllowCalls(it) },
+        onToggleAllowAlarms = { viewModel.toggleAllowAlarms(it) },
+        onToggleAllowWifi = { viewModel.toggleAllowWifi(it) }
     )
 }
 
@@ -86,7 +89,10 @@ fun BedtimeScreen(
 fun BedtimeContent(
     state: Bedtime,
     onToggleBedtimeMode: (Boolean) -> Unit,
-    onUpdateTime: (String, String) -> Unit
+    onUpdateTime: (String, String) -> Unit,
+    onToggleAllowCalls: (Boolean) -> Unit = {},
+    onToggleAllowAlarms: (Boolean) -> Unit = {},
+    onToggleAllowWifi: (Boolean) -> Unit = {}
 ) {
     val startAngle = calculateTimeAngle(state.startTime)
     val sweepAngle = calculateSweepAngle(state.startTime, state.endTime)
@@ -461,8 +467,8 @@ fun BedtimeContent(
                 ExceptionToggleItem(
                     label = "Phone calls",
                     icon = R.drawable.ic_phone,
-                    checked = true,
-                    onToggle = {}
+                    checked = state.allowPhoneCalls,
+                    onToggle = onToggleAllowCalls
                 )
 
                 HorizontalDivider(
@@ -475,8 +481,8 @@ fun BedtimeContent(
                 ExceptionToggleItem(
                     label = "Alarm clock",
                     icon = R.drawable.ic_alarm,
-                    checked = true,
-                    onToggle = {}
+                    checked = state.allowAlarms,
+                    onToggle = onToggleAllowAlarms
                 )
 
                 HorizontalDivider(
@@ -489,8 +495,8 @@ fun BedtimeContent(
                 ExceptionToggleItem(
                     label = "Wi-Fi / Internet",
                     icon = R.drawable.ic_network,
-                    checked = true,
-                    onToggle = {}
+                    checked = state.allowWifi,
+                    onToggle = onToggleAllowWifi
                 )
             }
         }

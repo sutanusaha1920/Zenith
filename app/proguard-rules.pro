@@ -1,21 +1,23 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# Preserve Line Numbers for Crash Reporting
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# Room DB Entities, DAOs & Database
+-keep class * extends androidx.room.RoomDatabase
+-keep class sutanu.apps.zenith.data.local.db.entity.** { *; }
+-keep class sutanu.apps.zenith.data.local.db.dao.** { *; }
+-dontwarn androidx.room.paging.**
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Dagger / Hilt
+-keep class * extends dagger.hilt.internal.UnsafeCasts { *; }
+-keep class dagger.hilt.android.internal.managers.** { *; }
+-keepclassmembers,allowobfuscation class * {
+    @dagger.hilt.android.lifecycle.HiltViewModel <init>(...);
+}
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# Jetpack DataStore & Preferences
+-keep class androidx.datastore.preferences.protobuf.** { *; }
+
+# Coil Image Loading
+-keep class coil.** { *; }
+-dontwarn coil.**

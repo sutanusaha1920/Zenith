@@ -42,15 +42,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.content.ContextCompat
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.Manifest
+import android.content.pm.PackageManager
+import android.widget.Toast
 import sutanu.apps.zenith.R
-import sutanu.apps.zenith.domain.model.Sos
 import sutanu.apps.zenith.data.local.db.entity.SosContactEntity
+import sutanu.apps.zenith.domain.model.Sos
 import sutanu.apps.zenith.presentation.sos.SosViewModel
 import sutanu.apps.zenith.presentation.ui.theme.AlertPrimary
 import sutanu.apps.zenith.presentation.ui.theme.BackgroundPrimary
@@ -68,12 +76,52 @@ import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
 @Composable
 fun SosScreen(viewModel: SosViewModel) {
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val smsGranted = permissions[Manifest.permission.SEND_SMS] ?: false
+        if (smsGranted) {
+            viewModel.triggerEmergencySos(context)
+        } else {
+            Toast.makeText(
+                context,
+                "SMS permission is required to send emergency SOS alerts.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
     SosScreenContent(
         state = state,
         onAddContactClick = { viewModel.showAddContactModal() },
         onDeleteContactClick = { viewModel.removeContact(it) },
         onAddContactConfirm = { name, phone -> viewModel.addNewContact(name, phone) },
-        onDismissModal = { viewModel.dismissAddContactModal() }
+        onDismissModal = { viewModel.dismissAddContactModal() },
+        onTriggerSos = {
+            val hasSmsPermission = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.SEND_SMS
+            ) == PackageManager.PERMISSION_GRANTED
+
+            val hasFineLocation = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (hasSmsPermission && hasFineLocation) {
+                viewModel.triggerEmergencySos(context)
+            } else {
+                permissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.SEND_SMS,
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            }
+        }
     )
 }
 
@@ -84,7 +132,8 @@ fun SosScreenContent(
     onAddContactClick: () -> Unit,
     onDeleteContactClick: (SosContactEntity) -> Unit,
     onAddContactConfirm: (String, String) -> Unit,
-    onDismissModal: () -> Unit
+    onDismissModal: () -> Unit,
+    onTriggerSos: () -> Unit = {}
 ) {
     val sheetState = rememberModalBottomSheetState()
 
@@ -215,7 +264,7 @@ fun SosScreenContent(
             // SOS Button
             item {
                 Button(
-                    onClick = {},
+                    onClick = { onTriggerSos() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(64.dp),
@@ -276,23 +325,29 @@ fun SosScreenContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Trusted Contacts",
+                            text = stringResource(R.string.trusted_contacts),
                             color = TextPrimary,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = Poppins
                         )
 
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Add Contacts",
-                            tint = InfoPrimary,
+                        Box(
                             modifier = Modifier
-                                .size(28.dp)
-                                .clickable {
-                                    onAddContactClick()
-                                }
-                        )
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .clickable(
+                                    onClickLabel = stringResource(R.string.add_trusted_contact)
+                                ) { onAddContactClick() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = stringResource(R.string.add_trusted_contact),
+                                tint = InfoPrimary,
+                                modifier = Modifier.size(28.dp)
+                            )
+                        }
                     }
 
                     if (state.trustedContacts.isEmpty()) {
@@ -391,14 +446,22 @@ fun ContactItemRow(contact: SosContactEntity, onDeleteClick: () -> Unit) {
             }
         }
 
-        Image(
-            painter = painterResource(R.drawable.ic_delete),
-            contentDescription = "Delete Contact",
-            alpha = 0.5f,
+        Box(
             modifier = Modifier
-                .size(22.dp)
-                .clickable { onDeleteClick() }
-        )
+                .size(48.dp)
+                .clip(CircleShape)
+                .clickable(
+                    onClickLabel = stringResource(R.string.delete)
+                ) { onDeleteClick() },
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(R.drawable.ic_delete),
+                contentDescription = stringResource(R.string.delete),
+                alpha = 0.7f,
+                modifier = Modifier.size(22.dp)
+            )
+        }
     }
 }
 
@@ -407,8 +470,8 @@ fun AddContactBottomSheetContent(
     onAddClick: (String, String) -> Unit,
     onCancelClick: () -> Unit
 ) {
-    var name by remember { mutableStateFlowOf("") }
-    var phone by remember { mutableStateFlowOf("") }
+    var name by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -512,7 +575,8 @@ fun SosScreenPreview() {
         onAddContactClick = {},
         onDeleteContactClick = {},
         onAddContactConfirm = { _, _ -> },
-        onDismissModal = {}
+        onDismissModal = {},
+        onTriggerSos = {}
     )
 }
 
@@ -530,4 +594,3 @@ fun AddContactBottomSheetPreview() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun rememberModalSheetState() = rememberModalBottomSheetState()
-private fun mutableStateFlowOf(initial: String) = mutableStateOf(initial)

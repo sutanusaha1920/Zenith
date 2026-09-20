@@ -62,6 +62,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -637,8 +638,8 @@ fun AppLimitRowItem(
             ) {
                 Image(
                     painter = rememberAsyncImagePainter(model = R.drawable.ic_delete),
-                    contentDescription = null,
-                    modifier = Modifier.size(22.dp)
+                    contentDescription = stringResource(R.string.delete),
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }

@@ -1,11 +1,7 @@
 package sutanu.apps.zenith.data.services
 
 import android.accessibilityservice.AccessibilityService
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.os.Build
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import dagger.hilt.android.AndroidEntryPoint
@@ -14,8 +10,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import sutanu.apps.zenith.data.local.db.dao.AppLimitDao
+import sutanu.apps.zenith.data.local.db.entity.AppLimitEntity
 import sutanu.apps.zenith.domain.repository.UsageStatsRepository
 import sutanu.apps.zenith.presentation.lock.overlay.LockScreenOverlayActivity
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -25,36 +23,33 @@ class AccessibilityMonitor : AccessibilityService() {
     lateinit var appLimitDao: AppLimitDao
     @Inject
     lateinit var usageStatsRepository: UsageStatsRepository
+
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.Main + serviceJob)
 
-    private val blockReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            Log.d("ZenithSecurity", "Broadcast received! Action: ${intent?.action}")
-            if (intent?.action == "sutanu.apps.zenith.ACTION_BLOCK_APP") {
-                val pkg = intent.getStringExtra("EXTRA_BLOCKED_PACKAGE") ?: return
-                val name = intent.getStringExtra("EXTRA_BLOCKED_APP_NAME") ?: return
-                Log.d("ZenithSecurity", "Manual block triggered for: $name")
-                launchBlockingOverlay(pkg, name)
-            }
-        }
-    }
+    // Thread-safe in-memory cache of app limits to avoid Room DB queries on every window change event
+    private val cachedAppLimits = ConcurrentHashMap<String, AppLimitEntity>()
 
     override fun onCreate() {
         super.onCreate()
         Log.i("ZenithAccessibility", "Accessibility Service CREATED")
-        val filter = IntentFilter("sutanu.apps.zenith.ACTION_BLOCK_APP")
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(blockReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            @Suppress("UnspecifiedRegisterReceiverFlag")
-            registerReceiver(blockReceiver, filter)
-        }
+        observeAppLimitsCache()
     }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
         Log.i("ZenithAccessibility", "Accessibility Service CONNECTED & READY")
+    }
+
+    private fun observeAppLimitsCache() {
+        serviceScope.launch(Dispatchers.IO) {
+            appLimitDao.getAllAppLimitsFlow().collect { limits ->
+                cachedAppLimits.clear()
+                limits.forEach { limit ->
+                    cachedAppLimits[limit.packageName] = limit
+                }
+            }
+        }
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
@@ -67,26 +62,27 @@ class AccessibilityMonitor : AccessibilityService() {
             // Don't block Zenith or the Launcher
             if (openedPackageName == packageName || openedPackageName.contains("launcher")) return
 
-            evaluateUsageQuotas(openedPackageName)
+            // Instant in-memory cache lookup
+            val limitRecord = cachedAppLimits[openedPackageName] ?: return
+
+            evaluateUsageQuotas(openedPackageName, limitRecord)
         }
     }
 
-    private fun evaluateUsageQuotas(packageName: String) {
-        serviceScope.launch(Dispatchers.IO) {
-            val appLimitRecord = appLimitDao.getAppLimit(packageName)
+    private fun evaluateUsageQuotas(packageName: String, limitRecord: AppLimitEntity) {
+        if (limitRecord.isBlockedText) {
+            Log.w("ZenithSecurity", "Enforcing hard barrier on $packageName")
+            launchBlockingOverlay(packageName, limitRecord.appName)
+            return
+        }
 
-            if (appLimitRecord != null) {
-
-                val isHardBlocked = appLimitRecord.isBlockedText
-
+        if (limitRecord.dailyLimitMinutes > 0) {
+            serviceScope.launch(Dispatchers.IO) {
                 val liveUsageMinutes = usageStatsRepository.getAppsUsageMinutes(listOf(packageName))[packageName] ?: 0
-
-                val isTimeLimitExceeded = appLimitRecord.dailyLimitMinutes in 1..liveUsageMinutes
-
-                if (isHardBlocked || isTimeLimitExceeded) {
+                if (liveUsageMinutes >= limitRecord.dailyLimitMinutes) {
                     launch(Dispatchers.Main) {
-                        Log.w("ZenithSecurity", "Enforcing barrier on $packageName. Live Usage: $liveUsageMinutes, Limit: ${appLimitRecord.dailyLimitMinutes}")
-                        launchBlockingOverlay(packageName, appLimitRecord.appName)
+                        Log.w("ZenithSecurity", "Enforcing barrier on $packageName. Live Usage: $liveUsageMinutes, Limit: ${limitRecord.dailyLimitMinutes}")
+                        launchBlockingOverlay(packageName, limitRecord.appName)
                     }
                 }
             }
@@ -115,9 +111,6 @@ class AccessibilityMonitor : AccessibilityService() {
 
     override fun onDestroy() {
         super.onDestroy()
-        try {
-            unregisterReceiver(blockReceiver)
-        } catch (e: Exception) {}
         serviceJob.cancel()
     }
 }

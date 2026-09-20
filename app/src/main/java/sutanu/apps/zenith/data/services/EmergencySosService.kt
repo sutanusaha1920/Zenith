@@ -1,32 +1,52 @@
 package sutanu.apps.zenith.data.services
 
 import android.Manifest
-import android.app.Service
 import android.content.Intent
-import android.os.IBinder
+import android.content.pm.PackageManager
 import android.telephony.SmsManager
 import android.util.Log
-import androidx.annotation.RequiresPermission
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleService
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import sutanu.apps.zenith.data.local.db.ZenithDatabase
+import sutanu.apps.zenith.data.local.db.dao.SosContactsDao
+import javax.inject.Inject
 
-class EmergencySosService : Service() {
+@AndroidEntryPoint
+class EmergencySosService : LifecycleService() {
 
-    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
+    @Inject
+    lateinit var sosContactsDao: SosContactsDao
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
         Log.d("ZenithSOS", "Executing background emergency location fetch...")
         fetchCoordinatesAndSendSms()
         return START_NOT_STICKY
     }
 
-    @RequiresPermission(allOf = [Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION])
     private fun fetchCoordinatesAndSendSms() {
+        val hasFineLocation = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        val hasCoarseLocation = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (!hasFineLocation && !hasCoarseLocation) {
+            Log.e("ZenithSOS", "Location permissions missing. Dispatching fallback SMS.")
+            dispatchSmsToTrustedContacts("HELP! Emergency triggered from Zenith App. Location permissions missing.")
+            return
+        }
+
         try {
             val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-
-            // Fetch the user's current GPS data
             fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
                 .addOnSuccessListener { location ->
                     val mapLink = if (location != null) {
@@ -34,48 +54,52 @@ class EmergencySosService : Service() {
                     } else {
                         "Coordinates Unavailable (GPS weak)"
                     }
-
                     val smsMessage =
                         "HELP! I need assistance. My location : $mapLink - Sent via Zenith App"
                     dispatchSmsToTrustedContacts(smsMessage)
                 }
-                .addOnFailureListener {
-                    // Send only SOS message if location hardware is not working
+                .addOnFailureListener { e ->
+                    Log.e("ZenithSOS", "Failed fetching GPS coordinates", e)
                     dispatchSmsToTrustedContacts("HELP! Emergency triggered from Zenith App. Unable to fetch real-time GPS link.")
                 }
         } catch (e: SecurityException) {
-            Log.e("ZenithSOS", "Cannot transmit SMS: Location Permissions missing.", e)
-            stopSelf()
+            Log.e("ZenithSOS", "SecurityException fetching location data", e)
+            dispatchSmsToTrustedContacts("HELP! Emergency triggered from Zenith App.")
         }
     }
 
     private fun dispatchSmsToTrustedContacts(message: String) {
-
-        val db = ZenithDatabase.getDatabase(this)
-
-        kotlinx.coroutines.MainScope().launch(kotlinx.coroutines.Dispatchers.IO) {
-            val phoneNumbers = db.sosContactsDao().getAllContactNumbers()
-
-            if (phoneNumbers.isEmpty()) {
-                Log.e("ZenithSOS", "No trusted contacts found in the database.")
-                return@launch
-            }
-
+        lifecycleScope.launch(Dispatchers.IO) {
             try {
+                val phoneNumbers = sosContactsDao.getAllContactNumbers()
+                if (phoneNumbers.isEmpty()) {
+                    Log.e("ZenithSOS", "No trusted contacts found in database.")
+                    return@launch
+                }
+
+                if (ContextCompat.checkSelfPermission(
+                        this@EmergencySosService,
+                        Manifest.permission.SEND_SMS
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    Log.e("ZenithSOS", "SEND_SMS permission not granted.")
+                    return@launch
+                }
+
                 val smsManager: SmsManager =
                     this@EmergencySosService.getSystemService(SmsManager::class.java)
                 for (number in phoneNumbers) {
-                    smsManager.sendTextMessage(number, null, message, null, null)
-                    Log.d("ZenithSOS", "Emergency message sent to $number")
+                    if (number.isNotBlank()) {
+                        smsManager.sendTextMessage(number, null, message, null, null)
+                        Log.d("ZenithSOS", "Emergency message sent to $number")
+                    }
                 }
-                Log.d("ZenithSOS", "Emergency message broadcasted successfully.")
+                Log.d("ZenithSOS", "Emergency messages broadcasted successfully.")
             } catch (e: Exception) {
-                Log.e("ZenithSOS", "Failed offline cellular transport transmission", e)
+                Log.e("ZenithSOS", "Failed SMS dispatch transmission", e)
             } finally {
                 stopSelf()
             }
         }
     }
-
-    override fun onBind(intent: Intent?): IBinder? = null
 }

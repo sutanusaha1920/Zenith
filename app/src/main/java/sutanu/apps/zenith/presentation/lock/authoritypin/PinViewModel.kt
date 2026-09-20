@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import sutanu.apps.zenith.data.local.preferences.AuthPreferences
 import sutanu.apps.zenith.domain.model.PinSetupStep
 import sutanu.apps.zenith.domain.model.PinUiState
 import sutanu.apps.zenith.domain.repository.AuthRepository
@@ -27,22 +27,25 @@ class PinViewModel @Inject constructor(
 
     init {
         determineRoutingFlow()
-
     }
 
     private fun determineRoutingFlow() {
         viewModelScope.launch {
             val savedPin = repository.parentalPin.first()
             if (savedPin.isEmpty()) {
-                _uiState.value = _uiState.value.copy(
-                    currentStep = PinSetupStep.CREATE,
-                    headerSubtitleText = "Create a 6-digit PIN"
-                )
+                _uiState.update {
+                    it.copy(
+                        currentStep = PinSetupStep.CREATE,
+                        headerSubtitleText = "Create a 6-digit PIN"
+                    )
+                }
             } else {
-                _uiState.value = _uiState.value.copy(
-                    currentStep = PinSetupStep.VALIDATE,
-                    headerSubtitleText = "Enter your PIN to continue"
-                )
+                _uiState.update {
+                    it.copy(
+                        currentStep = PinSetupStep.VALIDATE,
+                        headerSubtitleText = "Enter your PIN to continue"
+                    )
+                }
             }
         }
     }
@@ -51,11 +54,13 @@ class PinViewModel @Inject constructor(
         val currentPin = _uiState.value.enteredPin
         if (currentPin.length < 6) {
             val newPin = currentPin + digit
-            _uiState.value = _uiState.value.copy(
-                enteredPin = newPin,
-                isError = false,
-                errorMessage = null
-            )
+            _uiState.update {
+                it.copy(
+                    enteredPin = newPin,
+                    isError = false,
+                    errorMessage = null
+                )
+            }
 
             if (newPin.length == 6) {
                 verifyPin(newPin)
@@ -66,28 +71,34 @@ class PinViewModel @Inject constructor(
     fun onDeleteClick() {
         val currentPin = _uiState.value.enteredPin
         if (currentPin.isNotEmpty()) {
-            _uiState.value = _uiState.value.copy(
-                enteredPin = currentPin.dropLast(1),
-                isError = false
-            )
+            _uiState.update {
+                it.copy(
+                    enteredPin = currentPin.dropLast(1),
+                    isError = false
+                )
+            }
         }
     }
 
     fun togglePinVisibility() {
-        _uiState.value = _uiState.value.copy(
-            isPinVisible = !_uiState.value.isPinVisible
-        )
+        _uiState.update {
+            it.copy(
+                isPinVisible = !it.isPinVisible
+            )
+        }
     }
 
     private fun verifyPin(pin: String) {
         when (_uiState.value.currentStep) {
             PinSetupStep.CREATE -> {
-                _uiState.value = _uiState.value.copy(
-                    enteredPin = "",
-                    firstTimePinDraft = pin,
-                    currentStep = PinSetupStep.CONFIRM,
-                    headerSubtitleText = "Confirm your PIN"
-                )
+                _uiState.update {
+                    it.copy(
+                        enteredPin = "",
+                        firstTimePinDraft = pin,
+                        currentStep = PinSetupStep.CONFIRM,
+                        headerSubtitleText = "Confirm your PIN"
+                    )
+                }
             }
 
             PinSetupStep.CONFIRM -> {
@@ -95,23 +106,27 @@ class PinViewModel @Inject constructor(
                 if (pin == draftedPin) {
                     viewModelScope.launch {
                         repository.savePin(pin) // saves PIN
-                        _uiState.value = _uiState.value.copy(isSuccess = true)
+                        _uiState.update { it.copy(isSuccess = true) }
                     }
                 } else {
                     // Restarts matrix state to step one with error feedback
-                    _uiState.value = _uiState.value.copy(
-                        isError = true,
-                        errorMessage = "PINs did not match. Restart setup"
-                    )
+                    _uiState.update {
+                        it.copy(
+                            isError = true,
+                            errorMessage = "PINs did not match. Restart setup"
+                        )
+                    }
                     viewModelScope.launch {
                         delay(800)
-                        _uiState.value = _uiState.value.copy(
-                            enteredPin = "",
-                            firstTimePinDraft = "",
-                            currentStep = PinSetupStep.CREATE,
-                            headerSubtitleText = "Create a 6-digit PIN",
-                            isError = false
-                        )
+                        _uiState.update {
+                            it.copy(
+                                enteredPin = "",
+                                firstTimePinDraft = "",
+                                currentStep = PinSetupStep.CREATE,
+                                headerSubtitleText = "Create a 6-digit PIN",
+                                isError = false
+                            )
+                        }
                     }
                 }
             }
@@ -120,17 +135,21 @@ class PinViewModel @Inject constructor(
                 viewModelScope.launch {
                     val isValid = validatePinUseCase(pin)
                     if (isValid) {
-                        _uiState.value = _uiState.value.copy(isSuccess = true)
+                        _uiState.update { it.copy(isSuccess = true) }
                     } else {
-                        _uiState.value = _uiState.value.copy(
-                            isError = true,
-                            errorMessage = "Incorrect PIN code. Try again"
-                        )
+                        _uiState.update {
+                            it.copy(
+                                isError = true,
+                                errorMessage = "Incorrect PIN code. Try again"
+                            )
+                        }
                         delay(800)
-                        _uiState.value = _uiState.value.copy(
-                            enteredPin = "",
-                            isError = false
-                        )
+                        _uiState.update {
+                            it.copy(
+                                enteredPin = "",
+                                isError = false
+                            )
+                        }
                     }
                 }
             }

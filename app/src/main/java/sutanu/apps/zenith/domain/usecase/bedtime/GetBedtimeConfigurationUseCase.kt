@@ -8,7 +8,10 @@ import javax.inject.Inject
 data class BedtimeConfig(
     val isEnabled: Boolean,
     val startTime: String,
-    val endTime: String
+    val endTime: String,
+    val allowCalls: Boolean,
+    val allowAlarms: Boolean,
+    val allowWifi: Boolean
 )
 
 class GetBedtimeConfigurationUseCase @Inject constructor(
@@ -19,9 +22,19 @@ class GetBedtimeConfigurationUseCase @Inject constructor(
         return combine(
             repository.isBedtimeEnabled,
             repository.bedtimeStartTime,
-            repository.bedtimeEndTime
-        ) { enabled, start, end ->
-            BedtimeConfig(enabled, start, end)
+            repository.bedtimeEndTime,
+            repository.bedtimeAllowCalls,
+            repository.bedtimeAllowAlarms,
+            repository.bedtimeAllowWifi
+        ) { flowArray ->
+            BedtimeConfig(
+                isEnabled = flowArray[0] as Boolean,
+                startTime = flowArray[1] as String,
+                endTime = flowArray[2] as String,
+                allowCalls = flowArray[3] as Boolean,
+                allowAlarms = flowArray[4] as Boolean,
+                allowWifi = flowArray[5] as Boolean
+            )
         }
     }
 }

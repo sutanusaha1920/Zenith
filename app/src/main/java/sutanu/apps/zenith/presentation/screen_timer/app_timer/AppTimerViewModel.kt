@@ -38,7 +38,7 @@ class AppTimerViewModel @Inject constructor(
 
         viewModelScope.launch {
             val apps = getInstalledAppsUseCase()
-            _uiState.value = _uiState.value.copy(installedAppsList = apps)
+            _uiState.update { it.copy(installedAppsList = apps) }
         }
     }
 
@@ -57,11 +57,11 @@ class AppTimerViewModel @Inject constructor(
     }
 
     fun selectApp(app: AppInfo?) {
-        _uiState.value = _uiState.value.copy(selectedAppToLimit = app)
+        _uiState.update { it.copy(selectedAppToLimit = app) }
     }
 
     fun updateDraftSlider(hours: Float) {
-        _uiState.value = _uiState.value.copy(draftLimitHours = hours)
+        _uiState.update { it.copy(draftLimitHours = hours) }
     }
 
     fun applyLimit() {
@@ -74,10 +74,12 @@ class AppTimerViewModel @Inject constructor(
                 dailyLimitMinutes = (state.draftLimitHours * 60).toInt()
             )
             manageAppLimitsUseCase.executeSaveLimit(entity)
-            _uiState.value = _uiState.value.copy(
-                showAddLimitSection = false,
-                selectedAppToLimit = null
-            )
+            _uiState.update {
+                it.copy(
+                    showAddLimitSection = false,
+                    selectedAppToLimit = null
+                )
+            }
         }
     }
 

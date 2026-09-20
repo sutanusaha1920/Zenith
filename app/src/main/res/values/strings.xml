@@ -1,6 +1,105 @@
 <resources>
+    <!-- App & System -->
     <string name="app_name">Zenith</string>
+    <string name="app_tagline">Your shield in the connected world</string>
     <string name="device_admin_label">Zenith Administrative Shield</string>
     <string name="device_admin_description">Zenith requires Device Administrator permissions to protect your device from unauthorized changes and to enforce security policies.</string>
     <string name="accessibility_description">Zenith uses accessibility services to detect emergency triggers for SOS functionality.</string>
+
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_timer">Timer</string>
+    <string name="nav_bedtime">Bedtime</string>
+    <string name="nav_sos">SOS</string>
+    <string name="nav_monitor">Monitor</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Home Overview -->
+    <string name="home_overview">Overview</string>
+    <string name="screen_time_today">Screen time today</string>
+    <string name="limit_label">Limit: %1$s</string>
+    <string name="bedtime_active">Bedtime active</string>
+    <string name="bedtime_inactive">Bedtime inactive</string>
+    <string name="bedtime_ends">Ends %1$s</string>
+    <string name="bedtime_not_set">Not set</string>
+    <string name="apps_monitored">Apps monitored</string>
+    <string name="apps_count">%1$d apps</string>
+    <string name="limits_exceeded_count">%1$d limits exceeded</string>
+    <string name="recent_alerts">Recent Alerts</string>
+    <string name="alerts_new_count">%1$d new</string>
+    <string name="no_alerts_yet">No new alerts yet</string>
+
+    <!-- Screen Timers -->
+    <string name="device_timer_title">Entire Device Timer</string>
+    <string name="app_timer_title">Individual App Limits</string>
+    <string name="daily_limit">Daily Limit</string>
+    <string name="limit_hours_format">%1$sh</string>
+    <string name="limit_hours_of_limit">of %1$sh limit</string>
+    <string name="usage_hours_mins_format">%1$dh %2$dm</string>
+    <string name="usage_mins_format">%1$dm</string>
+    <string name="add_app_limit">Add App Limit</string>
+    <string name="select_application">Select Application</string>
+    <string name="choose_app_hint">Tap to choose app</string>
+    <string name="search_app_placeholder">Search app...</string>
+    <string name="no_apps_found">No apps found</string>
+    <string name="no_active_limits">No active screen limits</string>
+    <string name="apply_limit">Apply Limit</string>
+
+    <!-- Bedtime -->
+    <string name="bedtime_mode">Bedtime Mode</string>
+    <string name="bedtime_subtitle">Block device during sleep hours</string>
+    <string name="bedtime_schedule">Schedule</string>
+    <string name="bedtime_start">Bedtime start</string>
+    <string name="wake_up_time">Wake up time</string>
+    <string name="allowed_during_bedtime">Allowed During Bedtime</string>
+    <string name="phone_calls">Phone calls</string>
+    <string name="alarm_clock">Alarm clock</string>
+    <string name="wifi_internet">Wi-Fi / Internet</string>
+    <string name="bedtime_disclaimer">During bedtime, all apps and device usage are blocked. Only selected exceptions above remain accessible.</string>
+
+    <!-- SOS & Location -->
+    <string name="location_sos_title">Location &amp; SOS</string>
+    <string name="location_sos_subtitle">Real-time location and distress alerts</string>
+    <string name="sos_send_alert">SOS — Send Distress Alert</string>
+    <string name="sos_footer_hint">Works offline via SMS · Press power button 3× to trigger</string>
+    <string name="trusted_contacts">Trusted Contacts</string>
+    <string name="no_trusted_contacts">No trusted contacts added yet</string>
+    <string name="add_trusted_contact">Add Trusted Contact</string>
+    <string name="contact_name">Contact Name</string>
+    <string name="phone_number">Phone Number</string>
+
+    <!-- Monitor -->
+    <string name="accessibility_monitor">Accessibility Monitor</string>
+    <string name="accessibility_monitor_subtitle">App launch &amp; usage tracking</string>
+    <string name="accessibility_active">Accessibility Service Active</string>
+    <string name="accessibility_required">Accessibility Service Required</string>
+    <string name="weekly_usage">Weekly Usage</string>
+    <string name="recent_app_launches">Recent App Launches</string>
+    <string name="no_recent_launches">No recent app launches recorded</string>
+
+    <!-- Settings -->
+    <string name="settings">Settings</string>
+    <string name="settings_subtitle">App configuration &amp; security</string>
+    <string name="security_section">SECURITY</string>
+    <string name="change_pin">Change Authorization PIN</string>
+    <string name="change_pin_subtitle">Update your app unlock code</string>
+    <string name="lock_app">Lock App</string>
+    <string name="lock_app_subtitle">Return to PIN screen</string>
+    <string name="deletion_protection">App Deletion Protection</string>
+    <string name="deletion_protection_subtitle">Require PIN to uninstall this app</string>
+
+    <!-- Lock Overlay -->
+    <string name="times_up">Time\'s Up!</string>
+    <string name="limit_reached_title">Your daily screen time limit has been reached.</string>
+    <string name="app_blocked_message">%1$s is currently blocked. Time limit exceeded.</string>
+    <string name="unlock_with_pin">Unlock with PIN</string>
+    <string name="contact_parent_hint">Contact your parent or guardian to override the limit.</string>
+
+    <!-- Common & Actions -->
+    <string name="cancel">Cancel</string>
+    <string name="add">Add</string>
+    <string name="back">Back</string>
+    <string name="delete">Delete</string>
+    <string name="grant_access">Grant Access</string>
+    <string name="live">Live</string>
 </resources>

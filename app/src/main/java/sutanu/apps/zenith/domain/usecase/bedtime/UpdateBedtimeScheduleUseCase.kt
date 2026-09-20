@@ -12,4 +12,13 @@ class UpdateBedtimeScheduleUseCase @Inject constructor(
 
     suspend fun changeInterval(startTime: String, endTime: String) =
         repository.updateScheduleWindow(startTime, endTime)
+
+    suspend fun toggleAllowCalls(allow: Boolean) =
+        repository.setBedtimeAllowCalls(allow)
+
+    suspend fun toggleAllowAlarms(allow: Boolean) =
+        repository.setBedtimeAllowAlarms(allow)
+
+    suspend fun toggleAllowWifi(allow: Boolean) =
+        repository.setBedtimeAllowWifi(allow)
 }

@@ -11,16 +11,14 @@ import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import sutanu.apps.zenith.core.util.SecurityUtils
 import javax.inject.Inject
 import javax.inject.Singleton
-
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "zenith_auth_prefs")
 
 /**
- * Manages authentication-related preferences using Jetpack DataStore.
- *
- * Improvement: Injecting [DataStore] directly instead of [Context] for better testability.
+ * Manages authentication and bedtime preferences using Jetpack DataStore.
  */
 @Singleton
 class AuthPreferences @Inject constructor(
@@ -35,6 +33,10 @@ class AuthPreferences @Inject constructor(
         private val KEY_BEDTIME_START = stringPreferencesKey("bedtime_start_time")
         private val KEY_BEDTIME_END = stringPreferencesKey("bedtime_end_time")
 
+        private val KEY_BEDTIME_ALLOW_CALLS = booleanPreferencesKey("bedtime_allow_calls")
+        private val KEY_BEDTIME_ALLOW_ALARMS = booleanPreferencesKey("bedtime_allow_alarms")
+        private val KEY_BEDTIME_ALLOW_WIFI = booleanPreferencesKey("bedtime_allow_wifi")
+
         private val KEY_UNINSTALL_PROTECTION_ENABLED = booleanPreferencesKey("is_uninstall_protection_enabled")
     }
 
@@ -46,7 +48,7 @@ class AuthPreferences @Inject constructor(
     // Save or update the authorization code
     suspend fun savePin(pin: String) {
         context.dataStore.edit { preferences ->
-            preferences[KEY_PIN_HASH] = pin
+            preferences[KEY_PIN_HASH] = SecurityUtils.hashPin(pin)
         }
     }
 
@@ -83,6 +85,36 @@ class AuthPreferences @Inject constructor(
         context.dataStore.edit { preferences ->
             preferences[KEY_BEDTIME_START] = start
             preferences[KEY_BEDTIME_END] = end
+        }
+    }
+
+    val bedtimeAllowCalls: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[KEY_BEDTIME_ALLOW_CALLS] ?: true
+    }
+
+    suspend fun setBedtimeAllowCalls(allow: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_BEDTIME_ALLOW_CALLS] = allow
+        }
+    }
+
+    val bedtimeAllowAlarms: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[KEY_BEDTIME_ALLOW_ALARMS] ?: true
+    }
+
+    suspend fun setBedtimeAllowAlarms(allow: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_BEDTIME_ALLOW_ALARMS] = allow
+        }
+    }
+
+    val bedtimeAllowWifi: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[KEY_BEDTIME_ALLOW_WIFI] ?: true
+    }
+
+    suspend fun setBedtimeAllowWifi(allow: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_BEDTIME_ALLOW_WIFI] = allow
         }
     }
 

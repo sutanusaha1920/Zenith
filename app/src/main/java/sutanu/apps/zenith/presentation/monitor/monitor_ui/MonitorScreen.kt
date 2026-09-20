@@ -216,7 +216,7 @@ fun AccessibilityStatusCard(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = if (isAccessibilityActive) "Monitoring app launches and foreground activity" else "Enable Zenith in Accessibility Settings using the switch above",
+                    text = if (isAccessibilityActive) "Monitoring app launches and foreground activity" else "Settings ➔ Accessibility ➔ Downloaded apps ➔ Zenith ➔ Turn ON \"Use Zenith\" / Accessibility",
                     color = TextSecondary,
                     fontSize = 12.sp,
                     fontFamily = Poppins

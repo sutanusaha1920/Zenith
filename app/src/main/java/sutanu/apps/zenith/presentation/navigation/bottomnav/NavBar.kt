@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +27,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -44,13 +47,13 @@ fun NavBar(
     navController: NavHostController
 ) {
     val items = listOf(
-        NavItem(NavRoutes.HOME, icon = painterResource(R.drawable.ic_home_dashboard)),
-        NavItem(NavRoutes.TIMER, icon = painterResource(R.drawable.ic_timer)),
-        NavItem(NavRoutes.BEDTIME, icon = painterResource(R.drawable.ic_bedtime_moon_off)),
-        NavItem(NavRoutes.SOS, icon = painterResource(R.drawable.ic_sos_location)),
-        NavItem(NavRoutes.MONITOR, icon = painterResource(R.drawable.ic_pin_visibility_on)),
-        NavItem(NavRoutes.SETTINGS, icon = painterResource(R.drawable.ic_settings))
-        )
+        NavRoutes.HOME to R.string.nav_home to painterResource(R.drawable.ic_home_dashboard),
+        NavRoutes.TIMER to R.string.nav_timer to painterResource(R.drawable.ic_timer),
+        NavRoutes.BEDTIME to R.string.nav_bedtime to painterResource(R.drawable.ic_bedtime_moon_off),
+        NavRoutes.SOS to R.string.nav_sos to painterResource(R.drawable.ic_sos_location),
+        NavRoutes.MONITOR to R.string.nav_monitor to painterResource(R.drawable.ic_pin_visibility_on),
+        NavRoutes.SETTINGS to R.string.nav_settings to painterResource(R.drawable.ic_settings)
+    )
 
     val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
 
@@ -61,7 +64,7 @@ fun NavBar(
             .background(color = SurfacePrimary)
     ) {
         val itemWidth = this.maxWidth / items.size
-        val selectedIndex = items.indexOfFirst { it.route == currentRoute }
+        val selectedIndex = items.indexOfFirst { it.first.first == currentRoute }
 
         val indicatorOffset by animateFloatAsState(
             targetValue = if (selectedIndex != -1) selectedIndex.toFloat() else 0f,
@@ -85,15 +88,21 @@ fun NavBar(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            items.forEach { item ->
-                val isSelected = item.route == currentRoute
+            items.forEach { (routeAndTitle, icon) ->
+                val (route, titleRes) = routeAndTitle
+                val isSelected = route == currentRoute
+                val title = stringResource(titleRes)
 
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .clickable {
+                        .height(56.dp)
+                        .clickable(
+                            role = Role.Tab,
+                            onClickLabel = title
+                        ) {
                             if (!isSelected) {
-                                navController.navigate(item.route) {
+                                navController.navigate(route) {
                                     popUpTo(
                                         navController.graph
                                             .findStartDestination().id
@@ -104,32 +113,30 @@ fun NavBar(
                                     restoreState = true
                                 }
                             }
-                        },
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        }
+                        .padding(vertical = 4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Spacer(modifier = Modifier.height(8.dp))
-
                     Icon(
-                        painter = item.icon,
-                        contentDescription = item.route,
+                        painter = icon,
+                        contentDescription = title,
                         tint = if (isSelected) InfoPrimary else Color.Gray,
                         modifier = Modifier.size(24.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
 
                     Text(
-                        text = item.route.replaceFirstChar { it.uppercase() },
+                        text = title,
                         color = if (isSelected) InfoPrimary else Color.Gray,
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         fontFamily = Poppins,
                         fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
                         maxLines = 1,
                         softWrap = false,
                         textAlign = TextAlign.Center
                     )
-
-                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }

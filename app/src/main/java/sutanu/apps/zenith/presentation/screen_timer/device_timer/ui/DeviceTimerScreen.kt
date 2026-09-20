@@ -124,7 +124,7 @@ fun DeviceTimerContent(
             Spacer(modifier = Modifier.height(16.dp))
             PermissionPrompt(
                 title = "Accessibility Permission Required",
-                description = "To block restricted apps and enforce timers, please enable Zenith in Accessibility settings.",
+                description = "To block restricted apps and enforce timers, please follow:\nSettings ➔ Accessibility ➔ Downloaded apps ➔ Zenith ➔ Turn ON \"Use Zenith\" / Accessibility",
                 onGrantClick = {
                     val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
                         addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
