@@ -38,6 +38,7 @@ class AuthPreferences @Inject constructor(
         private val KEY_BEDTIME_ALLOW_WIFI = booleanPreferencesKey("bedtime_allow_wifi")
 
         private val KEY_UNINSTALL_PROTECTION_ENABLED = booleanPreferencesKey("is_uninstall_protection_enabled")
+        private val KEY_THEME_MODE = stringPreferencesKey("app_theme_mode")
     }
 
     // Stream to observe PIN updates reactively
@@ -135,6 +136,16 @@ class AuthPreferences @Inject constructor(
     suspend fun setUninstallProtectionEnabled(enabled: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[KEY_UNINSTALL_PROTECTION_ENABLED] = enabled
+        }
+    }
+
+    val themeMode: Flow<String> = context.dataStore.data.map { preferences ->
+        preferences[KEY_THEME_MODE] ?: "dark"
+    }
+
+    suspend fun setThemeMode(mode: String) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_THEME_MODE] = mode
         }
     }
 }

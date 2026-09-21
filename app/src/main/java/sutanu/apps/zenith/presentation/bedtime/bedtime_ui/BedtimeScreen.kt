@@ -207,6 +207,7 @@ fun BedtimeContent(
                     modifier = Modifier.size(200.dp),
                     contentAlignment = Alignment.Center
                 ) {
+                    val warningColor = WarningPrimary
                     Canvas(
                         modifier = Modifier.fillMaxSize()
                     ) {
@@ -239,7 +240,7 @@ fun BedtimeContent(
                         val handleX = (size.width / 2) + arcRadius * cos(angleRad)
                         val handleY = (size.height / 2) + arcRadius * sin(angleRad)
                         drawCircle(
-                            color = WarningPrimary,
+                            color = warningColor,
                             radius = 8.dp.toPx(),
                             center = Offset(handleX.toFloat(), handleY.toFloat())
                         )

@@ -163,6 +163,10 @@ fun DeviceTimerContent(
                     .size(200.dp),
                 contentAlignment = Alignment.Center
             ) {
+                val controlDarkColor = ControlDark
+                val alertColor = AlertPrimary
+                val infoColor = InfoPrimary
+
                 Canvas(
                     modifier = Modifier.fillMaxSize()
                 ) {
@@ -172,7 +176,7 @@ fun DeviceTimerContent(
 
                     // Inner Arc
                     drawArc(
-                        color = ControlDark,
+                        color = controlDarkColor,
                         startAngle = 140f,
                         sweepAngle = innerSweepAngleAnimated,
                         useCenter = false,
@@ -189,7 +193,7 @@ fun DeviceTimerContent(
 
                     // Outer Arc
                     drawArc(
-                        color = if (state.totalTimeUsedMinutes > limitMinutes) AlertPrimary else InfoPrimary,
+                        color = if (state.totalTimeUsedMinutes > limitMinutes) alertColor else infoColor,
                         startAngle = 140f,
                         sweepAngle = outerSweepAngleAnimated,
                         useCenter = false,

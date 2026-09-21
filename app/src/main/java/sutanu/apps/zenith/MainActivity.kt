@@ -9,18 +9,26 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
+import sutanu.apps.zenith.data.local.preferences.AuthPreferences
 import sutanu.apps.zenith.data.services.UsageSyncService
 import sutanu.apps.zenith.presentation.navigation.AppNavigation
 import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var authPreferences: AuthPreferences
 
     // Launcher for Android 13+ Notification Permission
     private val requestPermissionLauncher = registerForActivityResult(
@@ -39,7 +47,15 @@ class MainActivity : ComponentActivity() {
         checkPermissionsAndStartService()
 
         setContent {
-            ZenithTheme {
+            val themeMode by authPreferences.themeMode.collectAsState(initial = "dark")
+            val systemDark = isSystemInDarkTheme()
+            val darkTheme = when (themeMode) {
+                "light" -> false
+                "dark" -> true
+                else -> systemDark
+            }
+
+            ZenithTheme(darkTheme = darkTheme) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     // Launch app navigation
                     AppNavigation()

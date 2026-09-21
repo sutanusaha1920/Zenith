@@ -13,4 +13,8 @@ interface AuthRepository {
     val isUninstallProtectionEnabled: Flow<Boolean>
 
     suspend fun setUninstallProtection(enabled: Boolean)
+
+    val themeMode: Flow<String>
+
+    suspend fun setThemeMode(mode: String)
 }

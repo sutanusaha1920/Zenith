@@ -1,5 +1,11 @@
 package sutanu.apps.zenith.presentation.settings.settings_ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,9 +33,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
@@ -50,6 +60,7 @@ import sutanu.apps.zenith.presentation.ui.theme.SurfacePrimary
 import sutanu.apps.zenith.presentation.ui.theme.SurfaceSecondary
 import sutanu.apps.zenith.presentation.ui.theme.TextPrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
+import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
 
 @Composable
 fun SettingsScreen(
@@ -64,7 +75,8 @@ fun SettingsScreen(
         uiState = uiState,
         onNavigateToChangePin = onNavigateToChangePin,
         onNavigateToLockScreen = onNavigateToLockScreen,
-        onNavigateToDeletionProtection = onNavigateToDeletionProtection
+        onNavigateToDeletionProtection = onNavigateToDeletionProtection,
+        onThemeSelected = { mode -> viewModel.setThemeMode(mode) }
     )
 }
 
@@ -74,7 +86,7 @@ fun SettingsScreenContent(
     onNavigateToChangePin: () -> Unit,
     onNavigateToLockScreen: () -> Unit,
     onNavigateToDeletionProtection: () -> Unit,
-
+    onThemeSelected: (String) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -211,6 +223,113 @@ fun SettingsScreenContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Appearance section
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = SurfacePrimary)
+        ) {
+            Column {
+                Text(
+                    text = "APPEARANCE",
+                    fontFamily = Poppins,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextSecondary,
+                    modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp)
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier
+                        .padding(vertical = 4.dp),
+                    thickness = 0.20.dp,
+                    color = TextSecondary.copy(alpha = 0.9f)
+                )
+
+                var isThemeExpanded by remember { mutableStateOf(false) }
+                val arrowRotation by animateFloatAsState(
+                    targetValue = if (isThemeExpanded) 90f else 0f,
+                    label = "ArrowRotation"
+                )
+
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    SettingsItem(
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_theme_palette),
+                                contentDescription = null,
+                                tint = InfoPrimary,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        },
+                        iconBg = InfoPrimary.copy(alpha = 0.15f),
+                        title = "Theme",
+                        subtitle = when (uiState.themeMode) {
+                            "light" -> "Light"
+                            "dark" -> "Dark"
+                            else -> "System (Device Theme)"
+                        },
+                        trailing = {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                contentDescription = null,
+                                tint = TextSecondary,
+                                modifier = Modifier.rotate(arrowRotation)
+                            )
+                        },
+                        onClick = { isThemeExpanded = !isThemeExpanded }
+                    )
+
+                    AnimatedVisibility(
+                        visible = isThemeExpanded,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                        ) {
+                            HorizontalDivider(
+                                modifier = Modifier.padding(bottom = 8.dp),
+                                thickness = 0.20.dp,
+                                color = TextSecondary.copy(alpha = 0.5f)
+                            )
+
+                            ThemeOptionItem(
+                                text = "Light",
+                                isSelected = uiState.themeMode == "light",
+                                onClick = {
+                                    onThemeSelected("light")
+                                    isThemeExpanded = false
+                                }
+                            )
+
+                            ThemeOptionItem(
+                                text = "Dark",
+                                isSelected = uiState.themeMode == "dark",
+                                onClick = {
+                                    onThemeSelected("dark")
+                                    isThemeExpanded = false
+                                }
+                            )
+
+                            ThemeOptionItem(
+                                text = "System (Device Theme)",
+                                isSelected = uiState.themeMode == "system",
+                                onClick = {
+                                    onThemeSelected("system")
+                                    isThemeExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
         // About section
         Card(
             modifier = Modifier.fillMaxWidth(),
@@ -303,6 +422,39 @@ fun SettingsScreenContent(
 }
 
 @Composable
+fun ThemeOptionItem(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = text,
+            color = if (isSelected) InfoPrimary else TextPrimary,
+            fontFamily = Poppins,
+            fontSize = 16.sp,
+            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+        )
+        if (isSelected) {
+            Box(
+                modifier = Modifier
+                    .size(10.dp)
+                    .clip(CircleShape)
+                    .background(InfoPrimary)
+            )
+        }
+    }
+}
+
+@Composable
 fun SettingsItem(
     icon: @Composable () -> Unit,
     iconBg: Color = SurfaceSecondary,
@@ -368,10 +520,13 @@ fun SettingsItem(
 @Preview
 @Composable
 private fun SettingsScreenPreview() {
-    SettingsScreenContent(
-        uiState = SettingsUiState(),
-        onNavigateToChangePin = {},
-        onNavigateToLockScreen = {},
-        onNavigateToDeletionProtection = {}
-    )
+    ZenithTheme {
+        SettingsScreenContent(
+            uiState = SettingsUiState(),
+            onNavigateToChangePin = {},
+            onNavigateToLockScreen = {},
+            onNavigateToDeletionProtection = {},
+            onThemeSelected = {}
+        )
+    }
 }

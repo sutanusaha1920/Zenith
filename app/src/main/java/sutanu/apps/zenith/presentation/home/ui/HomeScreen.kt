@@ -52,6 +52,7 @@ import sutanu.apps.zenith.presentation.home.HomeViewModel
 import sutanu.apps.zenith.presentation.ui.theme.AlertPrimary
 import sutanu.apps.zenith.presentation.ui.theme.BackgroundPrimary
 import sutanu.apps.zenith.presentation.ui.theme.InfoPrimary
+import sutanu.apps.zenith.presentation.ui.theme.LocalDarkTheme
 import sutanu.apps.zenith.presentation.ui.theme.OuterCardStrokePrimary
 import sutanu.apps.zenith.presentation.ui.theme.Poppins
 import sutanu.apps.zenith.presentation.ui.theme.SurfacePrimary
@@ -82,12 +83,21 @@ fun HomeScreenContent(
         SimpleDateFormat("EEEE, MMMM d, yyyy", Locale.getDefault()).format(Date())
     }
 
-    val backgroundBrush = Brush.verticalGradient(
-        colors = listOf(
-            Color(0xFF0A1128),
-            BackgroundPrimary
+    val backgroundBrush = if (LocalDarkTheme.current) {
+        Brush.verticalGradient(
+            colors = listOf(
+                Color(0xFF0A1128),
+                BackgroundPrimary
+            )
         )
-    )
+    } else {
+        Brush.verticalGradient(
+            colors = listOf(
+                BackgroundPrimary,
+                BackgroundPrimary
+            )
+        )
+    }
 
     Box(
         modifier = Modifier

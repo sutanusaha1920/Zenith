@@ -46,4 +46,10 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override val themeMode: Flow<String> = authPreferences.themeMode
+
+    override suspend fun setThemeMode(mode: String) {
+        authPreferences.setThemeMode(mode)
+    }
+
 }
