@@ -20,7 +20,6 @@ class GetHomeOverViewUseCase @Inject constructor(
             deviceTimerRepository.deviceLimitFlow,
         ) { limits, totalUsage, deviceLimit ->
 
-
             val packageNames = limits.map { it.packageName }
             val usageMap = usageStatsRepository.getAppsUsageMinutes(packageNames)
 
@@ -29,12 +28,16 @@ class GetHomeOverViewUseCase @Inject constructor(
                 currencyUsage >= limitEntity.dailyLimitMinutes
             }
 
+            val deviceLimitMinutes = (deviceLimit * 60).toInt()
+            val isDeviceLimitExceeded = deviceLimitMinutes in 1..totalUsage
+
             UsageOverview(
                 totalUsage = formatMinutes(totalUsage),
                 monitoredAppsCount = limits.size,
                 exceededLimitsCount = exceededLimitCount,
                 currentLimit = formatHours(deviceLimit),
-                deviceLimit = formatHours(deviceLimit)
+                deviceLimit = formatHours(deviceLimit),
+                isDeviceLimitExceeded = isDeviceLimitExceeded
             )
         }
     }
@@ -58,5 +61,4 @@ private fun formatHours(hours: Float): String {
     else {
         "${hours}h"
     }
-
 }

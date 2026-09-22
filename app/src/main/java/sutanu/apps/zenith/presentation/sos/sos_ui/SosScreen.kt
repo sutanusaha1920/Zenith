@@ -85,6 +85,7 @@ import sutanu.apps.zenith.presentation.ui.theme.SurfacePrimary
 import sutanu.apps.zenith.presentation.ui.theme.SurfaceSecondary
 import sutanu.apps.zenith.presentation.ui.theme.TextPrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
+import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
 
 fun isNetworkAvailable(context: Context): Boolean {
     val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return false
@@ -217,13 +218,14 @@ fun SosScreenContent(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(top = 24.dp, bottom = 24.dp)
+            contentPadding = PaddingValues(top = 20.dp, bottom = 20.dp)
         ) {
             item {
                 Column(
-                    modifier = Modifier.padding(top = 12.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Text(
                         text = "Location & SOS",
@@ -237,8 +239,7 @@ fun SosScreenContent(
                         text = "Real-time location and distress alerts",
                         color = TextSecondary,
                         fontSize = 14.sp,
-                        fontFamily = Poppins,
-                        modifier = Modifier.padding(top = 4.dp)
+                        fontFamily = Poppins
                     )
                 }
             }
@@ -736,34 +737,38 @@ fun AddContactBottomSheetContent(
 @Preview(showBackground = true, device = "id:pixel_7", showSystemUi = true)
 @Composable
 fun SosScreenPreview() {
-    SosScreenContent(
-        state = Sos(
-            lastKnownLocation = "123, Salt Lake City, Sector V, Kolkata",
-            gpsAccuracy = "Accurate to within 12m",
-            latitude = 22.5726,
-            longitude = 88.3639,
-            isLoadingLocation = false,
-            trustedContacts = listOf(
-                SosContactEntity(id = 1, contactName = "Mom", phoneNumber = "+91 9876543210"),
-                SosContactEntity(id = 2, contactName = "Dad", phoneNumber = "+91 9876543211")
-            )
-        ),
-        onAddContactClick = {},
-        onDeleteContactClick = {},
-        onAddContactConfirm = { _, _ -> },
-        onDismissModal = {},
-        onOpenMapClick = {},
-        onTriggerSos = {}
-    )
+    ZenithTheme {
+        SosScreenContent(
+            state = Sos(
+                lastKnownLocation = "123, Salt Lake City, Sector V, Kolkata",
+                gpsAccuracy = "Accurate to within 12m",
+                latitude = 22.5726,
+                longitude = 88.3639,
+                isLoadingLocation = false,
+                trustedContacts = listOf(
+                    SosContactEntity(id = 1, contactName = "Mom", phoneNumber = "+91 9876543210"),
+                    SosContactEntity(id = 2, contactName = "Dad", phoneNumber = "+91 9876543211")
+                )
+            ),
+            onAddContactClick = {},
+            onDeleteContactClick = {},
+            onAddContactConfirm = { _, _ -> },
+            onDismissModal = {},
+            onOpenMapClick = {},
+            onTriggerSos = {}
+        )
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun AddContactBottomSheetPreview() {
-    Box(modifier = Modifier.background(SurfacePrimary)) {
-        AddContactBottomSheetContent(
-            onAddClick = { _, _ -> },
-            onCancelClick = {}
-        )
+    ZenithTheme {
+        Box(modifier = Modifier.background(SurfacePrimary)) {
+            AddContactBottomSheetContent(
+                onAddClick = { _, _ -> },
+                onCancelClick = {}
+            )
+        }
     }
 }

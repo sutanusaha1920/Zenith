@@ -8,7 +8,11 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,8 +46,23 @@ object TimerTab {
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    initialNavigateTo: String? = null
+) {
     val navController = rememberNavController()
+    var isUninstallPinTarget by remember { mutableStateOf(initialNavigateTo == "uninstall_pin_protection") }
+
+    LaunchedEffect(initialNavigateTo) {
+        if (initialNavigateTo == "uninstall_pin_protection") {
+            isUninstallPinTarget = true
+            navController.navigate(NavRoutes.PIN) {
+                popUpTo(0) { inclusive = true }
+            }
+        } else if (initialNavigateTo == NavRoutes.DELETE_PROTECTION) {
+            navController.navigate(NavRoutes.DELETE_PROTECTION)
+        }
+    }
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -80,20 +99,46 @@ fun AppNavigation() {
         ) {
             composable(NavRoutes.SPLASH) {
                 SplashScreen(onNextScreen = {
-                    navController.navigate(NavRoutes.PIN) {
-                        popUpTo(NavRoutes.SPLASH) {
-                            inclusive = true
+                    if (isUninstallPinTarget || initialNavigateTo == "uninstall_pin_protection") {
+                        navController.navigate(NavRoutes.PIN) {
+                            popUpTo(NavRoutes.SPLASH) {
+                                inclusive = true
+                            }
+                        }
+                    } else if (initialNavigateTo == NavRoutes.DELETE_PROTECTION) {
+                        navController.navigate(NavRoutes.DELETE_PROTECTION) {
+                            popUpTo(NavRoutes.SPLASH) {
+                                inclusive = true
+                            }
+                        }
+                    } else {
+                        navController.navigate(NavRoutes.PIN) {
+                            popUpTo(NavRoutes.SPLASH) {
+                                inclusive = true
+                            }
                         }
                     }
                 })
             }
 
             composable(NavRoutes.PIN) {
+                val isUninstallVerification = isUninstallPinTarget || initialNavigateTo == "uninstall_pin_protection"
+
                 PinEntryScreen(
+                    customHeaderSubtitleText = if (isUninstallVerification) "Enter PIN to access" else null,
                     onPinSuccess = {
-                        navController.navigate(HomeNav.ROUTE) {
-                            popUpTo(NavRoutes.PIN) {
-                                inclusive = true
+                        if (isUninstallVerification) {
+                            isUninstallPinTarget = false
+                            navController.navigate(NavRoutes.DELETE_PROTECTION) {
+                                popUpTo(NavRoutes.PIN) {
+                                    inclusive = true
+                                }
+                            }
+                        } else {
+                            navController.navigate(HomeNav.ROUTE) {
+                                popUpTo(NavRoutes.PIN) {
+                                    inclusive = true
+                                }
                             }
                         }
                     }
@@ -137,7 +182,11 @@ fun AppNavigation() {
                         navController.navigate(NavRoutes.CHANGE_PIN)
                     },
                     onNavigateToLockScreen = {
-                        navController.navigate(NavRoutes.PIN)
+                        navController.navigate(NavRoutes.PIN) {
+                            popUpTo(0) {
+                                inclusive = true
+                            }
+                        }
                     },
                     onNavigateToDeletionProtection = {
                         navController.navigate(NavRoutes.DELETE_PROTECTION)
@@ -156,7 +205,11 @@ fun AppNavigation() {
             composable(NavRoutes.DELETE_PROTECTION) {
                 DeletionProtectionScreen(
                     onNavigateBack = {
-                        navController.popBackStack()
+                        if (!navController.popBackStack()) {
+                            navController.navigate(HomeNav.ROUTE) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
                     }
                 )
             }

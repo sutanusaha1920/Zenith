@@ -5,5 +5,6 @@ data class UsageOverview(
     val currentLimit: String,
     val monitoredAppsCount: Int,
     val exceededLimitsCount: Int,
-    val deviceLimit: String
+    val deviceLimit: String,
+    val isDeviceLimitExceeded: Boolean = false
 )

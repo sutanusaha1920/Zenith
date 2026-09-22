@@ -1,5 +1,7 @@
 package sutanu.apps.zenith.presentation.lock.authoritypin.pin_ui
 
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -57,6 +59,12 @@ fun PinEntryScreen(
     customHeaderSubtitleText: String? = null
 ) {
     val state by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    BackHandler {
+        val activity = context as? ComponentActivity
+        activity?.moveTaskToBack(true)
+    }
 
     LaunchedEffect(state.isSuccess) {
         if (state.isSuccess) {

@@ -112,7 +112,7 @@ fun HomeScreenContent(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Header
@@ -124,9 +124,7 @@ fun HomeScreenContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(bottom = 8.dp),
+                            modifier = Modifier.weight(1f),
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Text(
@@ -178,7 +176,7 @@ fun HomeScreenContent(
                                 value = state.overview?.totalUsage ?: "0h 0m",
                                 subInfo = "Limit: ${state.overview?.currentLimit ?: "None"}",
                                 modifier = Modifier.weight(1f),
-                                isAlert = true
+                                isAlert = state.overview?.isDeviceLimitExceeded ?: false
                             )
 
                             StatCard(

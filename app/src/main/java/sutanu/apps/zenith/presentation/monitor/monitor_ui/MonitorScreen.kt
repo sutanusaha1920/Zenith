@@ -74,6 +74,7 @@ import sutanu.apps.zenith.presentation.ui.theme.SurfaceSecondary
 import sutanu.apps.zenith.presentation.ui.theme.TextPrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
 import sutanu.apps.zenith.presentation.ui.theme.WarningPrimary
+import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
 
 @Composable
 fun MonitorScreen(
@@ -111,7 +112,7 @@ fun MonitorScreenContent(
             .fillMaxSize()
             .background(BackgroundPrimary)
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Top Header with Toggle Switch
@@ -120,15 +121,17 @@ fun MonitorScreenContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Text(
                     text = "Accessibility Monitor",
                     color = TextPrimary,
-                    fontSize = 22.sp,
+                    fontSize = 24.sp,
                     fontFamily = Poppins,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = "App launch & usage tracking",
                     color = TextSecondary,
@@ -637,7 +640,9 @@ fun AccessibilityDisclaimerCard() {
 @Preview(showBackground = true, device = "id:pixel_7", showSystemUi = true)
 @Composable
 private fun MonitorScreenPreview() {
-    MonitorScreenContent(
-        uiState = MonitorUiState()
-    )
+    ZenithTheme {
+        MonitorScreenContent(
+            uiState = MonitorUiState()
+        )
+    }
 }

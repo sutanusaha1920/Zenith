@@ -92,24 +92,26 @@ fun SettingsScreenContent(
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundPrimary)
-            .padding(16.dp)
+            .padding(horizontal = 16.dp, vertical = 20.dp)
             .verticalScroll(rememberScrollState())
     ) {
         // Header
-        Column {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             Text(
                 text = "Settings",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary,
-                fontFamily = Poppins,
-                modifier = Modifier.padding(bottom = 8.dp)
+                fontFamily = Poppins
             )
 
             Text(
                 text = "App configuration & security",
                 fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
+                fontWeight = FontWeight.Normal,
                 color = TextSecondary,
                 fontFamily = Poppins
             )
@@ -383,8 +385,8 @@ fun SettingsScreenContent(
                         )
                     },
                     iconBg = InfoPrimary.copy(alpha = 0.15f),
-                    title = "Device Policy Manager",
-                    subtitle = if (uiState.securityStatus.isAdminActive) "Active · Managed device" else "Inactive",
+                    title = "App Protection Status",
+                    subtitle = if (uiState.securityStatus.isUninstallProtected) "Active · Protected" else "Inactive",
                     trailing = {
                         Box(
                             modifier = Modifier
@@ -392,8 +394,8 @@ fun SettingsScreenContent(
                                 .background(SurfaceSecondary)
                                 .padding(horizontal = 10.dp, vertical = 4.dp)) {
                             Text(
-                                text = if (uiState.securityStatus.isAdminActive) "Active" else "Inactive",
-                                color = if (uiState.securityStatus.isAdminActive) InfoPrimary else TextSecondary,
+                                text = if (uiState.securityStatus.isUninstallProtected) "Active" else "Inactive",
+                                color = if (uiState.securityStatus.isUninstallProtected) InfoPrimary else TextSecondary,
                                 fontSize = 12.sp
                             )
                         }
@@ -411,7 +413,7 @@ fun SettingsScreenContent(
             colors = CardDefaults.cardColors(containerColor = SurfacePrimary)
         ) {
             Text(
-                text = "This app is protected by Device Policy Manager (DPM). The authorization PIN is required to uninstall or disable this application, preventing unauthorized removal by the device user.",
+                text = "This app is protected by Zenith Accessibility Shield. The authorization PIN is required to uninstall or disable this application, preventing unauthorized removal by the device user.",
                 color = TextSecondary,
                 fontFamily = Poppins,
                 fontSize = 14.sp,

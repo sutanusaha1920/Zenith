@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -38,10 +39,17 @@ class MainActivity : ComponentActivity() {
         startTrackingService()
     }
 
+    private val navigateToState = mutableStateOf<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val routeFromIntent = intent?.getStringExtra("EXTRA_NAVIGATE_TO")
+        if (routeFromIntent != null) {
+            navigateToState.value = routeFromIntent
+        }
 
         // Handle permissions and start the tracking service
         checkPermissionsAndStartService()
@@ -55,12 +63,23 @@ class MainActivity : ComponentActivity() {
                 else -> systemDark
             }
 
+            val currentRoute = navigateToState.value
+
             ZenithTheme(darkTheme = darkTheme) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     // Launch app navigation
-                    AppNavigation()
+                    AppNavigation(initialNavigateTo = currentRoute)
                 }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        val routeFromIntent = intent.getStringExtra("EXTRA_NAVIGATE_TO")
+        if (routeFromIntent != null) {
+            navigateToState.value = routeFromIntent
         }
     }
 

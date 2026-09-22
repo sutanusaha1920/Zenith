@@ -54,6 +54,7 @@ import sutanu.apps.zenith.presentation.ui.theme.Poppins
 import sutanu.apps.zenith.presentation.ui.theme.SurfacePrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextPrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
+import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
 
 @Composable
 fun ChangePinScreen(
@@ -287,15 +288,17 @@ fun PinInputField(
 @Preview
 @Composable
 private fun ChangePinScreenPreview() {
-    ChangePinContent(
-        uiState = ChangePinUiState(),
-        onNavigateBack = {},
-        onCurrentPinChange = {},
-        onNewPinChange = {},
-        onConfirmPinChange = {},
-        toggleCurrentPinVisibility = {},
-        toggleNewPinVisibility = {},
-        toggleConfirmPinVisibility = {},
-        onUpdatePin = {}
-    )
+    ZenithTheme {
+        ChangePinContent(
+            uiState = ChangePinUiState(),
+            onNavigateBack = {},
+            onCurrentPinChange = {},
+            onNewPinChange = {},
+            onConfirmPinChange = {},
+            toggleCurrentPinVisibility = {},
+            toggleNewPinVisibility = {},
+            toggleConfirmPinVisibility = {},
+            onUpdatePin = {}
+        )
+    }
 }

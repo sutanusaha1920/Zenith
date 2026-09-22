@@ -62,6 +62,7 @@ import sutanu.apps.zenith.presentation.ui.theme.SurfacePrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextPrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
 import sutanu.apps.zenith.presentation.ui.theme.WarningPrimary
+import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -149,19 +150,21 @@ fun BedtimeContent(
             .background(BackgroundPrimary)
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(top = 24.dp, bottom = 24.dp)
+        contentPadding = PaddingValues(top = 20.dp, bottom = 20.dp)
     ) {
 
         // Header title
         item {
             Row(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp),
+                    .fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
                     Text(
                         text = "Bedtime Mode",
                         color = TextPrimary,
@@ -174,8 +177,7 @@ fun BedtimeContent(
                         text = "Block device during sleep hours",
                         color = TextSecondary,
                         fontSize = 14.sp,
-                        fontFamily = Poppins,
-                        modifier = Modifier.padding(top = 4.dp)
+                        fontFamily = Poppins
                     )
                 }
 
@@ -579,15 +581,17 @@ fun ExceptionToggleItem(
 @Preview(showBackground = true, device = "id:pixel_7", showSystemUi = true)
 @Composable
 private fun BedtimeScreenPreview() {
-    BedtimeContent(
-        state = Bedtime(
-            isScheduleEnabled = true,
-            startTime = "12:00 AM",
-            endTime = "07:30 AM"
-        ),
-        onToggleBedtimeMode = {},
-        onUpdateTime = { _, _ -> }
-    )
+    ZenithTheme {
+        BedtimeContent(
+            state = Bedtime(
+                isScheduleEnabled = true,
+                startTime = "12:00 AM",
+                endTime = "07:30 AM"
+            ),
+            onToggleBedtimeMode = {},
+            onUpdateTime = { _, _ -> }
+        )
+    }
 }
 
 @Composable
@@ -614,13 +618,33 @@ fun TimePickerDialog(
     )
 }
 
-private fun parseTimeToLocalTime(time: String): LocalTime {
+private fun parseBedtimeString(timeStr: String): LocalTime {
+    val trimmed = timeStr.trim().uppercase(Locale.US)
     return try {
-        val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
-        LocalTime.parse(time, formatter)
+        LocalTime.parse(trimmed)
     } catch (e: Exception) {
-        LocalTime.of(0, 0)
+        try {
+            LocalTime.parse(trimmed, DateTimeFormatter.ofPattern("hh:mm a", Locale.US))
+        } catch (e2: Exception) {
+            try {
+                LocalTime.parse(trimmed, DateTimeFormatter.ofPattern("h:mm a", Locale.US))
+            } catch (e3: Exception) {
+                try {
+                    LocalTime.parse(trimmed, DateTimeFormatter.ofPattern("HH:mm", Locale.US))
+                } catch (e4: Exception) {
+                    try {
+                        LocalTime.parse(trimmed, DateTimeFormatter.ofPattern("H:mm", Locale.US))
+                    } catch (e5: Exception) {
+                        LocalTime.of(22, 0)
+                    }
+                }
+            }
+        }
     }
+}
+
+private fun parseTimeToLocalTime(time: String): LocalTime {
+    return parseBedtimeString(time)
 }
 
 private fun formatLocalTimeToUserTime(time: LocalTime): String {
@@ -630,21 +654,19 @@ private fun formatLocalTimeToUserTime(time: LocalTime): String {
 
 private fun calculateTimeAngle(time: String): Float {
     return try {
-        val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
-        val localTime = LocalTime.parse(time, formatter)
+        val localTime = parseBedtimeString(time)
         val hour = localTime.hour % 12
         val minute = localTime.minute
         (hour * 30f) + (minute * 0.5f) - 90f
     } catch (e: Exception) {
-        -150f // Default for 10:00
+        -150f
     }
 }
 
 private fun calculateSweepAngle(start: String, end: String): Float {
     return try {
-        val formatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
-        val startTime = LocalTime.parse(start, formatter)
-        val endTime = LocalTime.parse(end, formatter)
+        val startTime = parseBedtimeString(start)
+        val endTime = parseBedtimeString(end)
 
         val startMinutes = startTime.hour * 60 + startTime.minute
         var endMinutes = endTime.hour * 60 + endTime.minute
@@ -654,11 +676,9 @@ private fun calculateSweepAngle(start: String, end: String): Float {
         }
 
         val durationMinutes = endMinutes - startMinutes
-        // On a 12-hour clock visual, we represent the proportion of the 12-hour cycle.
-        // If sleep is 9 hours, it's (9/12) * 360 = 270 degrees.
         (durationMinutes / 720f) * 360f
     } catch (e: Exception) {
-        270f // Default for 9 hours
+        270f
     }
 }
 

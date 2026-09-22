@@ -113,7 +113,7 @@ fun ScreenTimerContent(
             .padding(horizontal = 16.dp)
             .verticalScroll(rememberScrollState())
     ) {
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(20.dp))
 
         // Title control header panel
         Row(
@@ -121,7 +121,10 @@ fun ScreenTimerContent(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Text(
                     text = "Screen Timer",
                     color = TextPrimary,
@@ -134,8 +137,7 @@ fun ScreenTimerContent(
                     text = "Monitor and limit usage",
                     color = TextSecondary,
                     fontSize = 14.sp,
-                    fontFamily = Poppins,
-                    modifier = Modifier.padding(top = 4.dp)
+                    fontFamily = Poppins
                 )
             }
 

@@ -4,6 +4,7 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -17,6 +18,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import sutanu.apps.zenith.R
+import sutanu.apps.zenith.core.util.BedtimeUtils
+import sutanu.apps.zenith.data.local.preferences.AuthPreferences
 import sutanu.apps.zenith.domain.monitor.UsageMonitor
 import sutanu.apps.zenith.domain.repository.AppTimerRepository
 import sutanu.apps.zenith.domain.repository.DeviceTimerRepository
@@ -32,6 +35,7 @@ class UsageSyncService : LifecycleService() {
     @Inject lateinit var usageStatsRepository: UsageStatsRepository
     @Inject lateinit var deviceTimerRepository: DeviceTimerRepository
     @Inject lateinit var usageMonitor: UsageMonitor
+    @Inject lateinit var authPreferences: AuthPreferences
 
     private var syncJob: Job? = null
     private val channelId = "usage_sync_channel"
@@ -45,7 +49,15 @@ class UsageSyncService : LifecycleService() {
         super.onStartCommand(intent, flags, startId)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            startForeground(1, createNotification())
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(
+                    1,
+                    createNotification(),
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+                )
+            } else {
+                startForeground(1, createNotification())
+            }
         }
 
         if (syncJob == null || syncJob?.isCancelled == true) {
@@ -56,7 +68,7 @@ class UsageSyncService : LifecycleService() {
                     } catch (e: Exception) {
                         Log.e("UsageSyncService", "Error during usage sync loop", e)
                     }
-                    delay(60.seconds)
+                    delay(5.seconds)
                 }
             }
         }
@@ -66,8 +78,28 @@ class UsageSyncService : LifecycleService() {
     private suspend fun syncUsage() {
         usageMonitor.checkUsageAndTriggerAlerts()
 
-        val isTimerEnabled = deviceTimerRepository.isTimerEnabledFlow.first()
+        // 1. Evaluate Bedtime Mode
+        val isBedtimeEnabled = authPreferences.isBedtimeEnabled.first()
+        if (isBedtimeEnabled) {
+            val startTime = authPreferences.bedtimeStartTime.first()
+            val endTime = authPreferences.bedtimeEndTime.first()
 
+            if (BedtimeUtils.isCurrentTimeInBedtimeWindow(startTime, endTime)) {
+                val allowCalls = authPreferences.bedtimeAllowCalls.first()
+                val allowAlarms = authPreferences.bedtimeAllowAlarms.first()
+                val allowWifi = authPreferences.bedtimeAllowWifi.first()
+
+                val foregroundApp = usageStatsRepository.getForegroundApp()
+                if (foregroundApp != null && !BedtimeUtils.isAppAllowedDuringBedtime(foregroundApp, packageName, allowCalls, allowAlarms, allowWifi)) {
+                    Log.d("ZenithSync", "Bedtime Mode Active: Blocking foreground app $foregroundApp")
+                    launchBlockingOverlay(foregroundApp, "Bedtime Mode")
+                    return
+                }
+            }
+        }
+
+        // 2. Evaluate Device Screen Time Limit
+        val isTimerEnabled = deviceTimerRepository.isTimerEnabledFlow.first()
         if (isTimerEnabled) {
             val deviceLimitHours = deviceTimerRepository.deviceLimitFlow.first()
             val totalTimeUsedMinutes = usageStatsRepository.getTodayTotalUsageMinutes().first()
@@ -81,6 +113,7 @@ class UsageSyncService : LifecycleService() {
             }
         }
 
+        // 3. Evaluate Individual App Limits
         val trackedApps = appTimerRepository.getAppLimitsFlow().first()
         if (trackedApps.isEmpty()) return
 

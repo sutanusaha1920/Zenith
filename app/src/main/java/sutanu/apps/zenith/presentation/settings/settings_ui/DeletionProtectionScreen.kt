@@ -1,5 +1,6 @@
 package sutanu.apps.zenith.presentation.settings.settings_ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -63,6 +64,7 @@ import sutanu.apps.zenith.presentation.ui.theme.SurfacePrimary
 import sutanu.apps.zenith.presentation.ui.theme.SurfaceSecondary
 import sutanu.apps.zenith.presentation.ui.theme.TextPrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
+import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
 
 @Composable
 fun DeletionProtectionScreen(
@@ -92,6 +94,14 @@ fun DeletionProtectionContent(
     onPinVisibilityClicked: () -> Unit,
     onCancelClicked: () -> Unit
 ) {
+    BackHandler {
+        if (uiState.showNumpad) {
+            onCancelClicked()
+        } else {
+            onNavigateBack()
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -439,8 +449,8 @@ fun DeletionProtectionContent(
                 )
 
                 FeatureItem(
-                    title = "Device Admin Rights",
-                    subtitle = "The app holds device administrator privileges, preventing removal without proper authorization."
+                    title = "Accessibility Shield Protection",
+                    subtitle = "Uses Zenith's Accessibility Service to detect and intercept any unauthorized uninstallation attempts or settings tampering."
                 )
 
                 FeatureItem(
@@ -549,13 +559,15 @@ fun FeatureItem(
 @Preview
 @Composable
 private fun DeletionProtectionScreenPreview() {
-    DeletionProtectionContent(
-        uiState = DeletionProtectionUiState(),
-        onNavigateBack = {},
-        onToggleClicked = {},
-        onKeyClicked = {},
-        onDeleteClicked = {},
-        onPinVisibilityClicked = {},
-        onCancelClicked = {}
-    )
+    ZenithTheme {
+        DeletionProtectionContent(
+            uiState = DeletionProtectionUiState(),
+            onNavigateBack = {},
+            onToggleClicked = {},
+            onKeyClicked = {},
+            onDeleteClicked = {},
+            onPinVisibilityClicked = {},
+            onCancelClicked = {}
+        )
+    }
 }
