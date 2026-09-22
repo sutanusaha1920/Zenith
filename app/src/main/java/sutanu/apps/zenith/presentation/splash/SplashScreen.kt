@@ -36,6 +36,7 @@ import sutanu.apps.zenith.R
 import sutanu.apps.zenith.presentation.ui.theme.Poppins
 import sutanu.apps.zenith.presentation.ui.theme.TextPrimary
 import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
+import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
 import kotlin.time.Duration.Companion.milliseconds
 
 @Composable
@@ -144,5 +145,7 @@ fun SplashScreen(onNextScreen: () -> Unit) {
 @Preview(showBackground = true, device = "id:pixel_7", showSystemUi = true)
 @Composable
 private fun SplashScreenPreview() {
-    SplashScreen(onNextScreen = {})
+    ZenithTheme {
+        SplashScreen(onNextScreen = {})
+    }
 }
