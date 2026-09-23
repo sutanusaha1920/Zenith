@@ -6,6 +6,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -39,6 +41,10 @@ class AuthPreferences @Inject constructor(
 
         private val KEY_UNINSTALL_PROTECTION_ENABLED = booleanPreferencesKey("is_uninstall_protection_enabled")
         private val KEY_THEME_MODE = stringPreferencesKey("app_theme_mode")
+
+        private val KEY_DEVICE_OVERRIDE_EXTENSION_MINUTES = intPreferencesKey("device_override_extension_mins")
+        private val KEY_APP_OVERRIDE_EXTENSION_MINUTES = intPreferencesKey("app_override_extension_mins")
+        private val KEY_DEVICE_OVERRIDE_EXPIRATION_TIMESTAMP = longPreferencesKey("device_override_exp_timestamp")
     }
 
     // Stream to observe PIN updates reactively
@@ -146,6 +152,39 @@ class AuthPreferences @Inject constructor(
     suspend fun setThemeMode(mode: String) {
         context.dataStore.edit { preferences ->
             preferences[KEY_THEME_MODE] = mode
+        }
+    }
+
+    // Device Override Extension
+    val deviceOverrideExtensionMinutes: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[KEY_DEVICE_OVERRIDE_EXTENSION_MINUTES] ?: 30
+    }
+
+    suspend fun saveDeviceOverrideExtensionMinutes(minutes: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_DEVICE_OVERRIDE_EXTENSION_MINUTES] = minutes
+        }
+    }
+
+    val deviceOverrideExpirationTimestamp: Flow<Long> = context.dataStore.data.map { preferences ->
+        preferences[KEY_DEVICE_OVERRIDE_EXPIRATION_TIMESTAMP] ?: 0L
+    }
+
+    suspend fun grantDeviceOverrideExtension(extensionMinutes: Int) {
+        val expiration = System.currentTimeMillis() + (extensionMinutes * 60 * 1000L)
+        context.dataStore.edit { preferences ->
+            preferences[KEY_DEVICE_OVERRIDE_EXPIRATION_TIMESTAMP] = expiration
+        }
+    }
+
+    // App Override Extension
+    val appOverrideExtensionMinutes: Flow<Int> = context.dataStore.data.map { preferences ->
+        preferences[KEY_APP_OVERRIDE_EXTENSION_MINUTES] ?: 15
+    }
+
+    suspend fun saveAppOverrideExtensionMinutes(minutes: Int) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_APP_OVERRIDE_EXTENSION_MINUTES] = minutes
         }
     }
 }

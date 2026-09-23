@@ -415,7 +415,7 @@ fun SosScreenContent(
                 }
 
                 Text(
-                    text = "Works offline via SMS · Press power button 3× to trigger",
+                    text = "Works offline via SMS · Press Volume Up button 3× to trigger",
                     color = TextSecondary,
                     fontSize = 12.sp,
                     fontFamily = Poppins,

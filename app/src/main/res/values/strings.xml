@@ -61,7 +61,7 @@
     <string name="location_sos_title">Location &amp; SOS</string>
     <string name="location_sos_subtitle">Real-time location and distress alerts</string>
     <string name="sos_send_alert">SOS — Send Distress Alert</string>
-    <string name="sos_footer_hint">Works offline via SMS · Press power button 3× to trigger</string>
+    <string name="sos_footer_hint">Works offline via SMS · Press Volume Up button 3× to trigger</string>
     <string name="trusted_contacts">Trusted Contacts</string>
     <string name="no_trusted_contacts">No trusted contacts added yet</string>
     <string name="add_trusted_contact">Add Trusted Contact</string>

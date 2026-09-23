@@ -22,6 +22,9 @@ interface AppLimitDao {
     @Query("UPDATE app_limits SET dailyMinutesUsed = :minutes WHERE packageName = :packageName")
     suspend fun updateDailyAppUsage(packageName: String, minutes: Int)
 
+    @Query("UPDATE app_limits SET overrideExpirationTimestamp = :expirationTimestamp WHERE packageName = :packageName")
+    suspend fun grantAppOverride(packageName: String, expirationTimestamp: Long)
+
     @Query("DELETE FROM app_limits WHERE packageName = :packageName")
     suspend fun deleteAppLimit(packageName: String)
 }

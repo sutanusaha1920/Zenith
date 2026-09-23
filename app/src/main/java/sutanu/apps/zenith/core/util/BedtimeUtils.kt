@@ -27,20 +27,24 @@ object BedtimeUtils {
     }
 
     private fun parseTime(timeStr: String): LocalTime? {
-        val trimmed = timeStr.trim()
+        val trimmed = timeStr.trim().uppercase(Locale.US)
         return try {
             LocalTime.parse(trimmed) // e.g. "22:00"
         } catch (e: Exception) {
             try {
-                LocalTime.parse(trimmed, DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())) // e.g. "10:00 PM"
+                LocalTime.parse(trimmed, DateTimeFormatter.ofPattern("hh:mm a", Locale.US)) // e.g. "10:00 PM"
             } catch (e2: Exception) {
                 try {
-                    LocalTime.parse(trimmed, DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault()))
+                    LocalTime.parse(trimmed, DateTimeFormatter.ofPattern("h:mm a", Locale.US)) // e.g. "7:00 AM"
                 } catch (e3: Exception) {
                     try {
-                        LocalTime.parse(trimmed, DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault()))
+                        LocalTime.parse(trimmed, DateTimeFormatter.ofPattern("HH:mm", Locale.US))
                     } catch (e4: Exception) {
-                        null
+                        try {
+                            LocalTime.parse(trimmed, DateTimeFormatter.ofPattern("H:mm", Locale.US))
+                        } catch (e5: Exception) {
+                            null
+                        }
                     }
                 }
             }

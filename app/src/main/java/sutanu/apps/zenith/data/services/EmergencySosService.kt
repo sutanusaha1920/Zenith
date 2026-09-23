@@ -185,7 +185,7 @@ class EmergencySosService : LifecycleService() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Sending Emergency SOS")
             .setContentText("Dispatching location and distress message to trusted contacts...")
-            .setSmallIcon(R.drawable.ic_alert_triangle)
+            .setSmallIcon(R.drawable.ic_zenith_shield)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setOngoing(true)
             .build()

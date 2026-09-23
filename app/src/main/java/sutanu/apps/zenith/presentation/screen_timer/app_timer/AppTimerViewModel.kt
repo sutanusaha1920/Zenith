@@ -10,16 +10,20 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import sutanu.apps.zenith.data.local.db.entity.AppLimitEntity
+import sutanu.apps.zenith.data.local.preferences.AuthPreferences
 import sutanu.apps.zenith.domain.model.AppInfo
 import sutanu.apps.zenith.domain.model.AppTimer
 import sutanu.apps.zenith.domain.usecase.apps.GetInstalledAppsUseCase
 import sutanu.apps.zenith.domain.usecase.apps.ManageAppLimitsUseCase
 import javax.inject.Inject
 
+import kotlin.math.roundToInt
+
 @HiltViewModel
 class AppTimerViewModel @Inject constructor(
     private val getInstalledAppsUseCase: GetInstalledAppsUseCase,
-    private val manageAppLimitsUseCase: ManageAppLimitsUseCase
+    private val manageAppLimitsUseCase: ManageAppLimitsUseCase,
+    private val authPreferences: AuthPreferences
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AppTimer())
@@ -33,6 +37,12 @@ class AppTimerViewModel @Inject constructor(
         viewModelScope.launch {
             manageAppLimitsUseCase.executeGetLimits().collect { limits ->
                 _uiState.update { it.copy(individualLimits = limits) }
+            }
+        }
+
+        viewModelScope.launch {
+            authPreferences.appOverrideExtensionMinutes.collect { extensionMins ->
+                _uiState.update { it.copy(overrideExtensionMinutes = extensionMins) }
             }
         }
 
@@ -71,7 +81,7 @@ class AppTimerViewModel @Inject constructor(
             val entity = AppLimitEntity(
                 packageName = app.packageName,
                 appName = app.appName,
-                dailyLimitMinutes = (state.draftLimitHours * 60).toInt()
+                dailyLimitMinutes = (state.draftLimitHours * 60f).roundToInt()
             )
             manageAppLimitsUseCase.executeSaveLimit(entity)
             _uiState.update {
@@ -87,6 +97,12 @@ class AppTimerViewModel @Inject constructor(
         viewModelScope.launch {
             Log.d("ZenithViewModel", "Deleting limit for: $packageName")
             manageAppLimitsUseCase.executeDeleteLimit(packageName)
+        }
+    }
+
+    fun updateOverrideExtensionMinutes(minutes: Int) {
+        viewModelScope.launch {
+            authPreferences.saveAppOverrideExtensionMinutes(minutes)
         }
     }
 }

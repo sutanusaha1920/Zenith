@@ -19,6 +19,9 @@ interface AlertHistoryDao {
     @Query("DELETE FROM alert_history WHERE id NOT IN (SELECT id FROM alert_history ORDER BY timeStamp DESC LIMIT 20)")
     suspend fun deleteOldAlert()
 
+    @Query("DELETE FROM alert_history WHERE packageName = :packageName")
+    suspend fun deleteAlertsForPackage(packageName: String)
+
     @Query("SELECT COUNT(*) > 0 FROM alert_history WHERE packageName = :packageName AND severity = :severity AND timeStamp >= :startOfDay")
     suspend fun hasAlertedToday(packageName: String, severity: String, startOfDay: Long): Boolean
 }

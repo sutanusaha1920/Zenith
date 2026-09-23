@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import sutanu.apps.zenith.data.local.preferences.AuthPreferences
 import sutanu.apps.zenith.domain.model.DeviceTimer
 import sutanu.apps.zenith.domain.usecase.monitor.GetAccessibilityStatusUseCase
 import sutanu.apps.zenith.domain.usecase.timer.GetUsageStatsUseCase
@@ -20,7 +21,8 @@ import javax.inject.Inject
 class DeviceTimerViewModel @Inject constructor(
     private val manageDeviceLimitUseCase: ManageDeviceLimitUseCase,
     private val getUsageStatsUseCase: GetUsageStatsUseCase,
-    private val getAccessibilityStatusUseCase: GetAccessibilityStatusUseCase
+    private val getAccessibilityStatusUseCase: GetAccessibilityStatusUseCase,
+    private val authPreferences: AuthPreferences
 ) : ViewModel() {
 
     private val _refreshTrigger = MutableStateFlow(0)
@@ -29,8 +31,9 @@ class DeviceTimerViewModel @Inject constructor(
         manageDeviceLimitUseCase.getLimit(),
         manageDeviceLimitUseCase.isEnabled(),
         getUsageStatsUseCase.getTodayUsage(),
+        authPreferences.deviceOverrideExtensionMinutes,
         _refreshTrigger
-    ) { limit, enabled, usage, _ ->
+    ) { limit, enabled, usage, extensionMins, _ ->
         val needsUsage = !getUsageStatsUseCase.hasPermission()
         val needsAccess = !getAccessibilityStatusUseCase()
         Log.d("ZenithPermissions", "Re-evaluating permissions - needsUsage: $needsUsage, needsAccess: $needsAccess")
@@ -38,6 +41,7 @@ class DeviceTimerViewModel @Inject constructor(
             deviceLimitHours = limit,
             isTimerEnabled = enabled,
             totalTimeUsedMinutes = usage,
+            overrideExtensionMinutes = extensionMins,
             needsUsagePermission = needsUsage,
             needsAccessibilityPermission = needsAccess
         )
@@ -63,6 +67,12 @@ class DeviceTimerViewModel @Inject constructor(
     fun updateDeviceLimit(hours: Float) {
         viewModelScope.launch {
             manageDeviceLimitUseCase.updateLimit(hours)
+        }
+    }
+
+    fun updateOverrideExtensionMinutes(minutes: Int) {
+        viewModelScope.launch {
+            authPreferences.saveDeviceOverrideExtensionMinutes(minutes)
         }
     }
 }

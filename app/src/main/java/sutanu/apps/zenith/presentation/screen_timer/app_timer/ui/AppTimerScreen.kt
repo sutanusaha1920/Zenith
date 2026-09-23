@@ -82,6 +82,7 @@ import sutanu.apps.zenith.presentation.ui.theme.TextSecondary
 import androidx.compose.ui.tooling.preview.Preview
 import coil.compose.AsyncImage
 import sutanu.apps.zenith.domain.model.AppInfo
+import sutanu.apps.zenith.presentation.screen_timer.device_timer.ui.ExtensionDurationSelector
 import sutanu.apps.zenith.presentation.ui.theme.ZenithTheme
 
 @Composable
@@ -95,7 +96,8 @@ fun AppTimerScreen(viewModel: AppTimerViewModel) {
         onSelectApp = { viewModel.selectApp(it) },
         onUpdateDraftSlider = { viewModel.updateDraftSlider(it) },
         onApplyLimit = { viewModel.applyLimit() },
-        onDismissDialog = { viewModel.setAddLimitVisible(false) }
+        onDismissDialog = { viewModel.setAddLimitVisible(false) },
+        onUpdateExtensionMinutes = { viewModel.updateOverrideExtensionMinutes(it) }
     )
 }
 
@@ -107,7 +109,8 @@ fun AppTimerContent(
     onSelectApp: (AppInfo) -> Unit,
     onUpdateDraftSlider: (Float) -> Unit,
     onApplyLimit: () -> Unit,
-    onDismissDialog: () -> Unit
+    onDismissDialog: () -> Unit,
+    onUpdateExtensionMinutes: (Int) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth()
@@ -190,6 +193,16 @@ fun AppTimerContent(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        ExtensionDurationSelector(
+            title = "PIN Override Extension",
+            subtitle = "When an app limit is reached, entering PIN grants an extension for:",
+            options = listOf(5, 10, 15, 20, 25, 30),
+            selectedMinutes = state.overrideExtensionMinutes,
+            onSelectMinutes = onUpdateExtensionMinutes
+        )
     }
 }
 
@@ -676,7 +689,8 @@ fun AppTimerPreview() {
                 onSelectApp = {},
                 onUpdateDraftSlider = {},
                 onApplyLimit = {},
-                onDismissDialog = {}
+                onDismissDialog = {},
+                onUpdateExtensionMinutes = {}
             )
         }
     }

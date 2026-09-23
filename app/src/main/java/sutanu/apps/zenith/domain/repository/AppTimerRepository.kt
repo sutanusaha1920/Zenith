@@ -1,6 +1,5 @@
 package sutanu.apps.zenith.domain.repository
 
-
 import kotlinx.coroutines.flow.Flow
 import sutanu.apps.zenith.data.local.db.entity.AppLimitEntity
 import sutanu.apps.zenith.domain.model.AppInfo
@@ -18,4 +17,6 @@ interface AppTimerRepository {
     suspend fun updateDailyAppUsage(packageName: String, minutes: Int)
 
     suspend fun deleteAppLimit(packageName: String)
+
+    suspend fun grantAppOverride(packageName: String, extensionMinutes: Int)
 }

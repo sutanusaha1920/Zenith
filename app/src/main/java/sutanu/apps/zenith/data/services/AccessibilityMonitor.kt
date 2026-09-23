@@ -2,9 +2,12 @@ package sutanu.apps.zenith.data.services
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Intent
+import android.os.SystemClock
 import android.util.Log
+import android.view.KeyEvent
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import androidx.core.content.ContextCompat
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -38,7 +41,9 @@ class AccessibilityMonitor : AccessibilityService() {
     // Thread-safe in-memory cache of app limits
     private val cachedAppLimits = ConcurrentHashMap<String, AppLimitEntity>()
 
-    // Security & Bedtime Mode state cache
+    // Security & Bedtime Mode & Master Switch state cache
+    private var isMasterTimerEnabled = true
+    private var deviceOverrideExpiration = 0L
     private var isUninstallProtectionEnabled = true
     private var isBedtimeEnabled = false
     private var bedtimeStart = "22:00"
@@ -53,11 +58,25 @@ class AccessibilityMonitor : AccessibilityService() {
         observeAppLimitsCache()
         observeBedtimeConfigCache()
         observeUninstallProtection()
+        observeMasterTimerAndDeviceOverride()
     }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
         Log.i("ZenithAccessibility", "Accessibility Service CONNECTED & READY")
+    }
+
+    private fun observeMasterTimerAndDeviceOverride() {
+        serviceScope.launch(Dispatchers.IO) {
+            authPreferences.isDeviceAdminEnabled.collect { enabled ->
+                isMasterTimerEnabled = enabled
+            }
+        }
+        serviceScope.launch(Dispatchers.IO) {
+            authPreferences.deviceOverrideExpirationTimestamp.collect { timestamp ->
+                deviceOverrideExpiration = timestamp
+            }
+        }
     }
 
     private fun observeAppLimitsCache() {
@@ -197,9 +216,20 @@ class AccessibilityMonitor : AccessibilityService() {
     }
 
     private fun evaluateUsageQuotas(packageName: String, limitRecord: AppLimitEntity) {
+        if (!isMasterTimerEnabled) return
+
         if (limitRecord.isBlockedText) {
             Log.w("ZenithSecurity", "Enforcing hard barrier on $packageName")
             launchBlockingOverlay(packageName, limitRecord.appName)
+            return
+        }
+
+        // Check active PIN extension overrides
+        val isAppOverrideActive = System.currentTimeMillis() < limitRecord.overrideExpirationTimestamp
+        val isDeviceOverrideActive = System.currentTimeMillis() < deviceOverrideExpiration
+
+        if (isAppOverrideActive || isDeviceOverrideActive) {
+            Log.i("ZenithSecurity", "Active PIN extension override for $packageName until ${limitRecord.overrideExpirationTimestamp}")
             return
         }
 
@@ -244,6 +274,43 @@ class AccessibilityMonitor : AccessibilityService() {
             startActivity(overlayIntent)
         } catch (e: Exception) {
             Log.e("ZenithSecurity", "Could not render overlay", e)
+        }
+    }
+
+    private var volumeUpClickCount = 0
+    private var lastVolumeUpClickTime = 0L
+
+    override fun onKeyEvent(event: KeyEvent?): Boolean {
+        if (event != null && event.keyCode == KeyEvent.KEYCODE_VOLUME_UP && event.action == KeyEvent.ACTION_DOWN) {
+            val currentTime = SystemClock.elapsedRealtime()
+
+            if (currentTime - lastVolumeUpClickTime > 2500) {
+                volumeUpClickCount = 0
+            }
+
+            if (volumeUpClickCount == 0) {
+                lastVolumeUpClickTime = currentTime
+            }
+
+            volumeUpClickCount++
+            Log.d("ZenithHardware", "Volume UP click recognised count: $volumeUpClickCount")
+
+            if (volumeUpClickCount >= 3) {
+                volumeUpClickCount = 0
+                Log.d("ZenithHardware", "SOS action triggered via 3x Volume UP press")
+                triggerEmergencySosService()
+            }
+            return false
+        }
+        return super.onKeyEvent(event)
+    }
+
+    private fun triggerEmergencySosService() {
+        val serviceIntent = Intent(this, EmergencySosService::class.java)
+        try {
+            ContextCompat.startForegroundService(this, serviceIntent)
+        } catch (e: Exception) {
+            Log.e("ZenithHardware", "Failed to start EmergencySosService from Volume UP press", e)
         }
     }
 

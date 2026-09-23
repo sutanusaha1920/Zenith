@@ -365,7 +365,7 @@ fun SettingsScreenContent(
                     },
                     iconBg = InfoPrimary.copy(alpha = 0.15f),
                     title = "Zenith",
-                    subtitle = "Version 1.0.0 · Build 2026.06.10",
+                    subtitle = "Version 1.0.0 · Build 2026.07.24",
                 )
 
                 HorizontalDivider(

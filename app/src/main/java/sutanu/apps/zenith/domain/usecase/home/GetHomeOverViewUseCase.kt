@@ -7,6 +7,7 @@ import sutanu.apps.zenith.domain.repository.AppTimerRepository
 import sutanu.apps.zenith.domain.repository.DeviceTimerRepository
 import sutanu.apps.zenith.domain.repository.UsageStatsRepository
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 class GetHomeOverViewUseCase @Inject constructor(
     private val appTimerRepository: AppTimerRepository,
@@ -28,7 +29,7 @@ class GetHomeOverViewUseCase @Inject constructor(
                 currencyUsage >= limitEntity.dailyLimitMinutes
             }
 
-            val deviceLimitMinutes = (deviceLimit * 60).toInt()
+            val deviceLimitMinutes = (deviceLimit * 60f).roundToInt()
             val isDeviceLimitExceeded = deviceLimitMinutes in 1..totalUsage
 
             UsageOverview(

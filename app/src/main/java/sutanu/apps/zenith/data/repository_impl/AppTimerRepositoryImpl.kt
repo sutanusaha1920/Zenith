@@ -8,6 +8,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
+import sutanu.apps.zenith.data.local.db.dao.AlertHistoryDao
 import sutanu.apps.zenith.data.local.db.dao.AppLimitDao
 import sutanu.apps.zenith.data.local.db.entity.AppLimitEntity
 import sutanu.apps.zenith.domain.model.AppInfo
@@ -18,7 +19,8 @@ import javax.inject.Singleton
 @Singleton
 class AppTimerRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val appLimitDao: AppLimitDao
+    private val appLimitDao: AppLimitDao,
+    private val alertHistoryDao: AlertHistoryDao
 ) : AppTimerRepository {
     override fun getAppLimitsFlow(): Flow<List<AppLimitEntity>> = appLimitDao.getAllAppLimitsFlow()
 
@@ -39,7 +41,10 @@ class AppTimerRepositoryImpl @Inject constructor(
             .toList()
     }
 
-    override suspend fun saveAppLimit(entity: AppLimitEntity) = appLimitDao.saveAppLimit(entity)
+    override suspend fun saveAppLimit(entity: AppLimitEntity) {
+        alertHistoryDao.deleteAlertsForPackage(entity.packageName)
+        appLimitDao.saveAppLimit(entity)
+    }
 
     override suspend fun getAppLimitSync(packageName: String): AppLimitEntity? = appLimitDao.getAppLimit(packageName)
 
@@ -48,6 +53,13 @@ class AppTimerRepositoryImpl @Inject constructor(
         minutes = minutes
     )
 
-    override suspend fun deleteAppLimit(packageName: String) = appLimitDao.deleteAppLimit(packageName)
+    override suspend fun deleteAppLimit(packageName: String) {
+        alertHistoryDao.deleteAlertsForPackage(packageName)
+        appLimitDao.deleteAppLimit(packageName)
+    }
 
+    override suspend fun grantAppOverride(packageName: String, extensionMinutes: Int) {
+        val expiration = System.currentTimeMillis() + (extensionMinutes * 60 * 1000L)
+        appLimitDao.grantAppOverride(packageName, expiration)
+    }
 }

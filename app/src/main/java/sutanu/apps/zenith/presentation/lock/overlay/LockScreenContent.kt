@@ -40,6 +40,11 @@ fun LockScreenContent(
     appName: String,
     onOverrideClick: () -> Unit
 ) {
+    val isBedtime = appName.contains("Bedtime", ignoreCase = true)
+
+    val titleText = if (isBedtime) "Bedtime Active" else "Time's Up!"
+    val mainText = if (isBedtime) "Bedtime Mode is active." else "Your daily screen time limit has been reached."
+    val subText = if (isBedtime) "You can access the app after bedtime." else "$appName is currently blocked. Time limit exceeded."
 
     Box(
         modifier = Modifier
@@ -64,7 +69,7 @@ fun LockScreenContent(
             ) {
                 Icon(
                     imageVector = Icons.Default.Warning,
-                    contentDescription = "Time expired Barrier",
+                    contentDescription = "Barrier Warning",
                     tint = AlertPrimary,
                     modifier = Modifier.size(48.dp)
                 )
@@ -74,7 +79,7 @@ fun LockScreenContent(
 
             // Primary Title Header
             Text(
-                text = "Time's Up!",
+                text = titleText,
                 color = TextPrimary,
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
@@ -85,7 +90,7 @@ fun LockScreenContent(
 
             // Content
             Text(
-                text = "Your daily screen time limit has been reached.",
+                text = mainText,
                 color = TextPrimary,
                 fontSize = 16.sp,
                 fontFamily = Poppins,
@@ -93,7 +98,7 @@ fun LockScreenContent(
             )
 
             Text(
-                text = "$appName is currently blocked. Time limit exceeded.",
+                text = subText,
                 color = TextSecondary,
                 fontSize = 15.sp,
                 textAlign = TextAlign.Center,
@@ -138,6 +143,6 @@ fun LockScreenContent(
 @Composable
 private fun LockScreenContentPreview() {
     ZenithTheme(darkTheme = true) {
-        LockScreenContent("Instagram", onOverrideClick = {})
+        LockScreenContent("Bedtime Mode", onOverrideClick = {})
     }
 }

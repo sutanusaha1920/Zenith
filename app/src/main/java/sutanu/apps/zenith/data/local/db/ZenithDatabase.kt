@@ -15,7 +15,7 @@ import sutanu.apps.zenith.data.local.db.entity.SosContactEntity
 
 @Database(
     entities = [SosContactEntity::class, AppLimitEntity::class, AlertHistoryEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 abstract class ZenithDatabase : RoomDatabase() {
@@ -28,10 +28,9 @@ abstract class ZenithDatabase : RoomDatabase() {
         @Volatile
         private var INSTANCE: ZenithDatabase? = null
 
-        // Migration definition for upgrading schema version 3 to 4 if needed
         val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // Room schema migration statements executed on version upgrade
+                db.execSQL("ALTER TABLE app_limits ADD COLUMN overrideExpirationTimestamp INTEGER NOT NULL DEFAULT 0")
             }
         }
 
@@ -43,7 +42,7 @@ abstract class ZenithDatabase : RoomDatabase() {
                     "zenith_database"
                 )
                     .addMigrations(MIGRATION_3_4)
-                    .fallbackToDestructiveMigrationOnDowngrade()
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance

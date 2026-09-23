@@ -10,4 +10,5 @@ data class AppLimitEntity(
     val dailyLimitMinutes: Int,
     val dailyMinutesUsed: Int = 0,
     val isBlockedText: Boolean = false,
+    val overrideExpirationTimestamp: Long = 0L
 )

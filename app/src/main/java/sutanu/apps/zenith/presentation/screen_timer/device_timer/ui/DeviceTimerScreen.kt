@@ -10,6 +10,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +26,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -36,6 +39,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -83,7 +88,8 @@ fun DeviceTimerScreen(viewModel: DeviceTimerViewModel) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     DeviceTimerContent(
         state = state,
-        onUpdateLimit = { viewModel.updateDeviceLimit(it) }
+        onUpdateLimit = { viewModel.updateDeviceLimit(it) },
+        onUpdateExtensionMinutes = { viewModel.updateOverrideExtensionMinutes(it) }
     )
 }
 
@@ -91,7 +97,8 @@ fun DeviceTimerScreen(viewModel: DeviceTimerViewModel) {
 @Composable
 fun DeviceTimerContent(
     state: DeviceTimer,
-    onUpdateLimit: (Float) -> Unit
+    onUpdateLimit: (Float) -> Unit,
+    onUpdateExtensionMinutes: (Int) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -181,11 +188,11 @@ fun DeviceTimerContent(
                         sweepAngle = innerSweepAngleAnimated,
                         useCenter = false,
                         style = Stroke(width = strokeW, cap = StrokeCap.Round),
-                        size = androidx.compose.ui.geometry.Size(
+                        size = Size(
                             width = size.width - outerPadding * 2 - innerGap * 2,
                             height = size.height - outerPadding * 2 - innerGap * 2
                         ),
-                        topLeft = androidx.compose.ui.geometry.Offset(
+                        topLeft = Offset(
                             x = outerPadding + innerGap,
                             y = outerPadding + innerGap
                         )
@@ -233,7 +240,7 @@ fun DeviceTimerContent(
             }
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(24.dp))
 
         Column(
             modifier = Modifier
@@ -336,6 +343,99 @@ fun DeviceTimerContent(
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        ExtensionDurationSelector(
+            title = "PIN Override Extension",
+            subtitle = "When daily limit is reached, entering PIN grants an extension for:",
+            options = listOf(10, 20, 30, 40, 50, 60),
+            selectedMinutes = state.overrideExtensionMinutes,
+            onSelectMinutes = onUpdateExtensionMinutes
+        )
+    }
+}
+
+@Composable
+fun ExtensionDurationSelector(
+    title: String,
+    subtitle: String,
+    options: List<Int>,
+    selectedMinutes: Int,
+    onSelectMinutes: (Int) -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, OuterCardStrokePrimary, RoundedCornerShape(20.dp)),
+        colors = CardDefaults.cardColors(containerColor = SurfaceSecondary),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(R.drawable.ic_clock_2),
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = title,
+                    color = TextPrimary,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = Poppins
+                )
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Text(
+                text = subtitle,
+                color = TextSecondary,
+                fontSize = 13.sp,
+                fontFamily = Poppins
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                options.forEach { mins ->
+                    val isSelected = mins == selectedMinutes
+                    val label = if (mins >= 60) "${mins / 60}h" else "${mins}m"
+
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (isSelected) InfoPrimary else SurfacePrimary)
+                            .border(
+                                1.dp,
+                                if (isSelected) InfoPrimary else OuterCardStrokePrimary,
+                                RoundedCornerShape(12.dp)
+                            )
+                            .clickable { onSelectMinutes(mins) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = label,
+                            color = if (isSelected) Color.White else TextPrimary,
+                            fontSize = 13.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            fontFamily = Poppins
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -348,7 +448,8 @@ fun DeviceTimerPreview() {
                 totalTimeUsedMinutes = 135,
                 deviceLimitHours = 4.0f
             ),
-            onUpdateLimit = {}
+            onUpdateLimit = {},
+            onUpdateExtensionMinutes = {}
         )
     }
 }
